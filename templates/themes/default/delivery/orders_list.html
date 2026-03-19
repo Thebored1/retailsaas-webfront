@@ -1,0 +1,32 @@
+{% extends "themes/default/delivery/base.html" %}
+
+{% block content %}
+  <div class="hero">
+    <h2>Out for Delivery Orders</h2>
+    <p class="muted">Only orders marked as out for delivery appear here.</p>
+  </div>
+
+  {% if orders %}
+    <div class="grid">
+      {% for order in orders %}
+        <div class="card">
+          <div>
+            <h3>Order #{{ order.id }}</h3>
+            <p class="muted">Estimated total: INR {{ order.estimated_total }}</p>
+            {% if order.delivery_slot_text %}
+              <p class="muted">Slot: {{ order.delivery_slot_text }}</p>
+            {% endif %}
+            {% if order.delivery_date %}
+              <p class="muted">Date: {{ order.delivery_date }}</p>
+            {% endif %}
+          </div>
+          <div class="card-actions">
+            <a class="btn primary" href="/delivery/orders/{{ order.id }}/">View Details</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">No orders are currently out for delivery.</p>
+  {% endif %}
+{% endblock %}

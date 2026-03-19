@@ -1,0 +1,35 @@
+{% extends "themes/modern/base.html" %}
+
+{% block content %}
+<section class="order-status">
+  <h2>Order Submitted</h2>
+  <p>Your order #{{ order.id }} is pending store approval.</p>
+  <p>Total: Rs.{{ order.estimated_total }}</p>
+
+  {% if items %}
+    <h3>Order Breakdown</h3>
+    <ul class="summary-list">
+      {% for item in items %}
+        <li>
+          {{ item.product_name }} × {{ item.qty }} — Rs.{{ item.line_total }}
+          {% if item.batch_allocations %}
+            <ul class="muted">
+              {% for alloc in item.batch_allocations %}
+                <li>
+                  {% if alloc.batch_id %}
+                    Batch price Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
+                  {% else %}
+                    Backorder price Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <a class="btn" href="/">Back to products</a>
+</section>
+{% endblock %}

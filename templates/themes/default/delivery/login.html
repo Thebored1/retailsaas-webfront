@@ -1,0 +1,33 @@
+{% extends "themes/default/delivery/base.html" %}
+
+{% block content %}
+  <div class="hero">
+    <h2>Delivery Agent Sign In</h2>
+    <p class="muted">Use your delivery agent account credentials.</p>
+  </div>
+  <form method="post" class="checkout-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="checkout-grid">
+      <div>
+        <label for="id_username">Phone Number</label>
+        <input
+          type="text"
+          name="username"
+          id="id_username"
+          inputmode="numeric"
+          pattern="\d{10}"
+          maxlength="10"
+          placeholder="10-digit phone"
+          value="{{ form.username.value|default_if_none:'' }}"
+          required
+        />
+      </div>
+      <div>
+        <label for="id_password">Password</label>
+        {{ form.password }}
+      </div>
+    </div>
+    <button class="btn primary" type="submit">Sign In</button>
+  </form>
+{% endblock %}

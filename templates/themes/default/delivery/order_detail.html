@@ -1,0 +1,160 @@
+{% extends "themes/default/delivery/base.html" %}
+
+{% block content %}
+  <div class="hero">
+    <h2>Order #{{ order.id }}</h2>
+    <p class="muted">Status: {{ order.status }}</p>
+  </div>
+
+  <div class="detail">
+    <div class="detail-note">
+      <h3>Customer</h3>
+      <p>{{ customer.name|default:"Guest" }}</p>
+      <p class="muted">{{ customer.phone }}</p>
+      <p class="muted">{{ customer.address }}</p>
+      {% if order.delivery_slot_text %}
+        <p class="muted">Slot: {{ order.delivery_slot_text }}</p>
+      {% endif %}
+      {% if order.delivery_date %}
+        <p class="muted">Delivery date: {{ order.delivery_date }}</p>
+      {% endif %}
+    </div>
+    <div class="detail-note">
+      <h3>Items</h3>
+      <ul>
+        {% for item in items %}
+          <li>
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span>{{ item.name }} x {{ item.qty }}</span>
+              {% if item.line_total %}
+                <span class="muted">INR {{ item.line_total }}</span>
+              {% endif %}
+            </div>
+            {% if item.batch_allocations %}
+              <ul style="margin-top: 6px;">
+                {% for alloc in item.batch_allocations %}
+                  <li class="muted">
+                    Batch {{ alloc.batch_id|default:"N/A" }}: {{ alloc.qty }} x INR {{ alloc.unit_price }}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </li>
+        {% empty %}
+          <li>No items found.</li>
+        {% endfor %}
+      </ul>
+      <p class="price">
+        Total: INR {{ order.final_total|default:order.estimated_total }}
+      </p>
+    </div>
+  </div>
+
+  <div class="detail-note" style="margin-top: 24px;">
+    <h3>Complete Delivery</h3>
+    <p class="muted">
+      {% if require_photo %}
+        At least one delivery photo is required to complete this order.
+      {% else %}
+        You may complete this order without a photo.
+      {% endif %}
+    </p>
+    {% if order.status == "OUT_FOR_DELIVERY" %}
+      <form method="post" enctype="multipart/form-data" id="delivery-form">
+        {% csrf_token %}
+        <input type="file" name="photos" accept="image/*" capture="environment" multiple id="delivery-photos" />
+        <div style="margin-top: 12px;">
+          <button class="btn primary" type="submit" id="delivery-submit">Mark Delivered</button>
+        </div>
+      </form>
+    {% else %}
+      <p class="muted">This order has already been completed.</p>
+    {% endif %}
+  </div>
+
+  {% if photos %}
+    <div class="detail-note" style="margin-top: 24px;">
+      <h3>Delivery Photos</h3>
+      <ul>
+        {% for photo in photos %}
+          <li>
+            <a href="{{ photo.image.url }}" target="_blank">Photo {{ forloop.counter }}</a>
+            <span class="muted">({{ photo.uploaded_at }})</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <script>
+    (function () {
+      const form = document.getElementById('delivery-form');
+      const input = document.getElementById('delivery-photos');
+      if (!form || !input) return;
+
+      const MAX_KB = 200;
+      const MAX_BYTES = MAX_KB * 1024;
+
+      function fileToImage(file) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+      }
+
+      function canvasToBlob(canvas, quality) {
+        return new Promise((resolve) => {
+          canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
+        });
+      }
+
+      async function compressFile(file) {
+        try {
+          const img = await fileToImage(file);
+          const canvas = document.createElement('canvas');
+          const maxDim = 1600;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            const scale = Math.min(maxDim / width, maxDim / height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          let quality = 0.85;
+          let blob = await canvasToBlob(canvas, quality);
+          while (blob && blob.size > MAX_BYTES && quality > 0.35) {
+            quality -= 0.1;
+            blob = await canvasToBlob(canvas, quality);
+          }
+
+          if (!blob) return file;
+          return new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.jpg', {
+            type: 'image/jpeg',
+          });
+        } catch (e) {
+          return file;
+        }
+      }
+
+      form.addEventListener('submit', async (e) => {
+        if (!input.files || input.files.length === 0) return;
+        e.preventDefault();
+        const files = Array.from(input.files);
+        const compressed = [];
+        for (const f of files) {
+          compressed.push(await compressFile(f));
+        }
+        const dt = new DataTransfer();
+        for (const f of compressed) dt.items.add(f);
+        input.files = dt.files;
+        form.submit();
+      });
+    })();
+  </script>
+{% endblock %}

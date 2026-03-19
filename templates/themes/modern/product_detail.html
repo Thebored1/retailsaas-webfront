@@ -1,4 +1,4 @@
-{% extends "themes/modern/base.html" %}
+﻿{% extends "themes/modern/base.html" %}
 
 {% block content %}
 <section class="detail">
@@ -9,7 +9,7 @@
   {% endif %}
   <div class="detail-info">
     <h2>{{ product.name }}</h2>
-    <p class="muted">HSN {{ product.hsn_code }} · GST {{ product.gst_rate }}%</p>
+    <p class="muted">HSN {{ product.hsn_code }} - GST {{ product.gst_rate }}%</p>
     <p class="price">
       Rs.{{ fifo_price|default:product.price_estimate }}
       {% if product.mrp > product.price_estimate %}
@@ -36,3 +36,4 @@
   </aside>
 </section>
 {% endblock %}
+

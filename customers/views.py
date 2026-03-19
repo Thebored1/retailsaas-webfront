@@ -5,6 +5,14 @@ from django.contrib.auth.decorators import login_required
 from .forms import SignUpForm, SignInForm, ProfileEditForm
 from orders.models import OnlineOrder, RetailTransaction
 
+DELIVERY_GROUP_NAME = "delivery_agents"
+
+
+def _is_delivery_agent(user) -> bool:
+    if not user.is_authenticated:
+        return False
+    return user.groups.filter(name=DELIVERY_GROUP_NAME).exists()
+
 def _theme_template(template_name: str) -> str:
     try:
         from core.models import ShopConfig
@@ -15,6 +23,8 @@ def _theme_template(template_name: str) -> str:
 
 def signup_view(request):
     if request.user.is_authenticated:
+        if _is_delivery_agent(request.user):
+            return redirect('delivery_orders')
         return redirect('product_list')
 
     if request.method == 'POST':
@@ -33,6 +43,8 @@ def signup_view(request):
 
 def signin_view(request):
     if request.user.is_authenticated:
+        if _is_delivery_agent(request.user):
+            return redirect('delivery_orders')
         return redirect('product_list')
 
     if request.method == 'POST':
@@ -44,6 +56,12 @@ def signin_view(request):
             # Authenticate using the phone number (which is the username)
             user = authenticate(request, username=phone, password=password)
             if user is not None:
+                if _is_delivery_agent(user):
+                    messages.error(request, "Please sign in from the delivery console.")
+                    return render(request, _theme_template('customers/signin.html'), {'form': form})
+                if not hasattr(user, "customer"):
+                    messages.error(request, "Customer account not found.")
+                    return render(request, _theme_template('customers/signin.html'), {'form': form})
                 login(request, user)
                 messages.success(request, f"Welcome back!")
                 # Redirect back to where they came from if 'next' is passed, else home
@@ -63,6 +81,10 @@ def signout_view(request):
 
 @login_required
 def profile_view(request):
+    if _is_delivery_agent(request.user):
+        messages.error(request, "Delivery agents cannot access customer profiles.")
+        logout(request)
+        return redirect('delivery_login')
     if not hasattr(request.user, "customer"):
         messages.error(request, "Customer profile not found.")
         return redirect('product_list')

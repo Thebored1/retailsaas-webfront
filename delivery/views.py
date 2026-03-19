@@ -23,7 +23,7 @@ def _theme_template(template_name: str) -> str:
 def _is_delivery_agent(user) -> bool:
     if not user.is_authenticated:
         return False
-    return user.is_superuser or user.groups.filter(name=DELIVERY_GROUP_NAME).exists()
+    return user.groups.filter(name=DELIVERY_GROUP_NAME).exists()
 
 
 def _require_delivery_agent(request):
@@ -55,7 +55,7 @@ def delivery_logout(request):
     return redirect("delivery_login")
 
 
-@login_required
+@login_required(login_url='delivery_login')
 def delivery_orders_list(request):
     gate = _require_delivery_agent(request)
     if gate:
@@ -74,7 +74,7 @@ def delivery_orders_list(request):
     )
 
 
-@login_required
+@login_required(login_url='delivery_login')
 def delivery_order_detail(request, order_id: int):
     gate = _require_delivery_agent(request)
     if gate:

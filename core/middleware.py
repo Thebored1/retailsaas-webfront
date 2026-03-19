@@ -20,9 +20,7 @@ class DeliveryAgentAccessMiddleware:
         path = request.path or ""
 
         if user and user.is_authenticated:
-            is_delivery_agent = user.is_superuser or user.groups.filter(
-                name=DELIVERY_GROUP_NAME
-            ).exists()
+            is_delivery_agent = user.groups.filter(name=DELIVERY_GROUP_NAME).exists()
 
             if is_delivery_agent:
                 allowed_prefixes = (

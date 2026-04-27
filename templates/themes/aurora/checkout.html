@@ -1,0 +1,140 @@
+{% extends "themes/aurora/base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 py-12">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-8">Checkout</h1>
+
+    {% if not can_checkout %}
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8 flex items-start gap-4">
+        <i class="fas fa-exclamation-circle text-red-500 text-xl mt-0.5"></i>
+        <div>
+            <h3 class="font-bold text-red-900">Insufficient Stock</h3>
+            <p class="text-red-700 text-sm mt-1">Some items in your cart are no longer available in the requested quantity. Please <a href="/cart/" class="underline font-bold">return to cart</a> to adjust.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {# Left Column: Checkout Form #}
+        <div class="lg:col-span-7">
+            <form method="post" class="space-y-10">
+                {% csrf_token %}
+
+                {# Shipping Information #}
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Delivery Information</h2>
+                        {% if not request.user.is_authenticated %}
+                            <p class="text-sm text-gray-500">Already a customer? <a href="/accounts/signin/" class="text-brand-600 font-bold hover:underline">Sign In</a></p>
+                        {% endif %}
+                    </div>
+                    <div class="bg-gray-50 rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="customer_name" placeholder="John Doe" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.customer.name }}{% endif %}" 
+                                       {% if request.user.is_authenticated %}readonly{% endif %} required 
+                                       class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 outline-none focus:ring-2 focus:ring-brand-500 transition-all {% if request.user.is_authenticated %}bg-gray-100 text-gray-500 cursor-not-allowed{% endif %}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
+                                <input type="tel" name="customer_phone" placeholder="10-digit number" maxlength="10" pattern="\d{10}"
+                                       value="{% if request.user.is_authenticated %}{{ request.user.customer.phone }}{% endif %}" 
+                                       {% if request.user.is_authenticated %}readonly{% endif %} required 
+                                       class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 outline-none focus:ring-2 focus:ring-brand-500 transition-all {% if request.user.is_authenticated %}bg-gray-100 text-gray-500 cursor-not-allowed{% endif %}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                                <input type="email" name="customer_email" placeholder="john@example.com" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.customer.email }}{% endif %}" 
+                                       class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Delivery Address <span class="text-red-500">*</span></label>
+                                <textarea name="customer_address" placeholder="Flat/House No., Street, Area, Landmark..." required 
+                                          class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 outline-none focus:ring-2 focus:ring-brand-500 transition-all min-h-[120px]">{% if request.user.is_authenticated %}{{ request.user.customer.address }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {# Payment Method #}
+                <section>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Payment Method</h2>
+                    <div class="bg-gray-50 rounded-3xl p-8 border border-gray-100 shadow-sm">
+                        <label class="flex items-center gap-4 p-5 bg-white border-2 border-brand-500 rounded-2xl cursor-pointer shadow-sm">
+                            <div class="w-6 h-6 rounded-full border-2 border-brand-500 flex items-center justify-center">
+                                <div class="w-3 h-3 bg-brand-500 rounded-full"></div>
+                            </div>
+                            <i class="fas fa-money-bill-wave text-xl text-green-600"></i>
+                            <div class="flex-1">
+                                <span class="block font-bold text-gray-900">Cash on Delivery</span>
+                                <span class="block text-xs text-gray-500">Pay when you receive the items</span>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+
+                <button type="submit" {% if not can_checkout %}disabled{% endif %} class="w-full py-5 bg-black text-white font-extrabold text-lg rounded-2xl hover:bg-brand-600 transition-all shadow-xl hover:scale-[1.01] {% if not can_checkout %}opacity-50 cursor-not-allowed{% endif %}">
+                    Confirm & Place Order
+                </button>
+            </form>
+        </div>
+
+        {# Right Column: Order Summary #}
+        <div class="lg:col-span-5">
+            <div class="bg-gray-900 text-white rounded-3xl p-8 shadow-2xl sticky top-24">
+                <h3 class="text-2xl font-bold mb-8">Summary</h3>
+                <ul class="space-y-6 mb-8 border-b border-gray-800 pb-8">
+                    {% for item in items %}
+                    <li class="flex gap-4">
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-lg overflow-hidden bg-white">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center text-gray-200">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <span class="absolute -top-2 -right-2 w-6 h-6 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">{{ item.qty }}</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm text-gray-200">{{ item.product.name }}</h4>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Rs.{{ item.line_total }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="space-y-4 mb-8">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Subtotal</span>
+                        <span class="font-bold">Rs.{{ estimated_total }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Delivery</span>
+                        <span class="text-green-400 font-bold uppercase tracking-widest text-[10px] mt-1">Free</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-8 border-t border-gray-800">
+                    <span class="text-lg font-bold">Total</span>
+                    <span class="text-3xl font-extrabold text-brand-500">Rs.{{ estimated_total }}</span>
+                </div>
+
+                <div class="mt-8 bg-gray-800/50 p-4 rounded-2xl flex items-start gap-3">
+                    <i class="fas fa-shipping-fast text-brand-500 mt-1"></i>
+                    <div class="text-xs">
+                        <p class="text-white font-bold mb-1">Estimated Arrival</p>
+                        <p class="text-gray-400">{{ expected_delivery_text }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

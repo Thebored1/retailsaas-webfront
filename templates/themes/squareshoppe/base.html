@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ shop_name }} — {% block title %}Home{% endblock %}</title>
+    <meta name="description" content="{{ shop_name }} — clean, modern ecommerce" />
+
+    <!-- Tailwind CDN with small custom config to keep a squarish theme -->
+    <script>
+      tailwind = {
+        config: {
+          theme: {
+            extend: {},
+            borderRadius: {
+              none: '0',
+              sm: '6px',
+              DEFAULT: '6px',
+              md: '8px',
+              lg: '10px'
+            }
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* Small helper to limit content width on very large screens */
+      .container-max { max-width: 1180px; }
+      [onclick] { cursor: pointer; }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body class="bg-gray-50 text-gray-800 antialiased">
+    <!-- TOP BAR -->
+    {% if show_top_bar %}
+    <div class="bg-indigo-600 text-white text-sm">
+      <div class="container-max mx-auto px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 1.414 5 5 0 010 7.071 1 1 0 01-1.415-1.414 3 3 0 000-4.242 1 1 0 010-1.415zM10 9a1 1 0 011 1v.01a1 1 0 11-2 0V10a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          <span>{{ store_address }}</span>
+        </div>
+        <div class="hidden sm:block">{{ top_bar_offer }}</div>
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.036 11.036 0 006.41 6.41l.548-1.548a1 1 0 011.059-.54l4.434.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+          </svg>
+          <span>{{ support_phone }}</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- NAV -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="container-max mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="{% url 'product_list' %}" class="flex items-center gap-3">
+          {% if logo_url %}
+            <img src="{{ logo_url }}" alt="{{ shop_name }}" class="h-10 w-auto">
+          {% else %}
+            <div class="w-10 h-10 bg-indigo-600 text-white flex items-center justify-center font-semibold rounded-sm">
+                {{ logo_text|slice:":2"|upper }}
+            </div>
+            <span class="font-semibold text-lg">{{ logo_text }}</span>
+          {% endif %}
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm">
+          {% for label, url in nav_links %}
+            <a href="{{ url }}" class="hover:text-indigo-600">{{ label }}</a>
+          {% empty %}
+            <a href="{% url 'product_list' %}" class="hover:text-indigo-600">Products</a>
+            <a href="#categories" class="hover:text-indigo-600">Categories</a>
+          {% endfor %}
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden md:block">
+            <form action="{% url 'product_list' %}" method="get" class="relative block">
+              <span class="sr-only">Search</span>
+              <input name="q" value="{{ query|default:'' }}" class="placeholder:italic placeholder:text-slate-400 block bg-gray-100 w-64 border border-transparent rounded-sm py-2 pl-3 pr-3 focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="Search products..." />
+            </form>
+          </div>
+          
+          {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="p-2 rounded-sm hover:bg-gray-100 text-gray-600" title="Profile">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+            </a>
+          {% else %}
+            <a href="{% url 'signin' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Sign in</a>
+          {% endif %}
+
+          <a href="{% url 'cart_view' %}" class="p-2 rounded-sm hover:bg-gray-100 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M16 11V7a1 1 0 00-1-1H5a1 1 0 00-1 1v4H2v2h16v-2h-2z" />
+              <path d="M8 13a2 2 0 100 4 2 2 0 000-4zM14 13a2 2 0 100 4 2 2 0 000-4z" />
+            </svg>
+            {% if cart_count %}
+              <span class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ cart_count }}</span>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if show_newsletter %}
+    <!-- NEWSLETTER -->
+    <section class="container-max mx-auto px-4 py-12">
+      <div class="bg-white border border-gray-100 rounded-sm p-6 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-sm">
+        <div class="text-center lg:text-left">
+          <h3 class="text-2xl font-bold text-gray-900">{{ newsletter_title }}</h3>
+          <p class="mt-2 text-gray-600">{{ newsletter_body }}</p>
+        </div>
+        <form class="w-full lg:w-1/2 flex flex-col sm:flex-row gap-3">
+          <input class="flex-1 border-2 border-gray-100 rounded-sm px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-gray-50 transition-all" type="email" placeholder="Enter your email" required />
+          <button class="bg-indigo-600 text-white px-8 py-3 rounded-sm font-bold shadow-lg hover:bg-indigo-700 transition-all whitespace-nowrap">Subscribe Now</button>
+        </form>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-50 border-t border-gray-100 mt-6">
+      <div class="container-max mx-auto px-4 py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div class="sm:col-span-2 lg:col-span-1">
+          <a href="{% url 'product_list' %}" class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-indigo-600 text-white flex items-center justify-center font-semibold rounded-sm">
+                {{ logo_text|slice:":2"|upper }}
+            </div>
+            <span class="font-bold text-xl text-gray-900">{{ logo_text }}</span>
+          </a>
+          <p class="text-sm text-gray-500 leading-relaxed">{{ footer_tagline }}</p>
+        </div>
+        
+        <div>
+          <h4 class="font-bold text-gray-900 uppercase tracking-widest text-xs mb-6">{{ footer_col2_heading }}</h4>
+          <ul class="text-sm text-gray-600 space-y-3">
+            {% for label, url in footer_col2_links %}
+                {% if "sadfasdf" not in label %}
+                    <li><a href="{{ url }}" class="hover:text-indigo-600 transition-colors">{{ label }}</a></li>
+                {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-bold text-gray-900 uppercase tracking-widest text-xs mb-6">{{ footer_col3_heading }}</h4>
+          <ul class="text-sm text-gray-600 space-y-3">
+            {% for label, url in footer_col3_links %}
+                {% if "sadfasdf" not in label %}
+                    <li><a href="{{ url }}" class="hover:text-indigo-600 transition-colors">{{ label }}</a></li>
+                {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-gray-900 uppercase tracking-widest text-xs mb-6">{{ footer_col4_heading }}</h4>
+          <ul class="text-sm text-gray-600 space-y-3">
+            {% for label, url in footer_col4_links %}
+                {% if "sadfasdf" not in label %}
+                    <li><a href="{{ url }}" class="hover:text-indigo-600 transition-colors">{{ label }}</a></li>
+                {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-gray-900 uppercase tracking-widest text-xs mb-8">Contact Us</h4>
+          <ul class="text-sm text-gray-600 space-y-6">
+            <li class="flex items-start gap-4">
+                <div class="w-8 h-8 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <p class="font-medium text-gray-900 leading-relaxed">{{ store_address }}</p>
+            </li>
+            <li class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <a href="mailto:{{ support_email }}" class="font-medium text-gray-900 hover:text-indigo-600 transition-colors">{{ support_email }}</a>
+            </li>
+            <li class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                </div>
+                <p class="font-medium text-gray-900">{{ support_phone }}</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-100">
+        <div class="container-max mx-auto px-4 py-8 text-sm text-gray-500 flex flex-col md:flex-row items-center justify-between">
+          <div class="font-medium">© {% now "Y" %} {{ shop_name }}. All rights reserved.</div>
+          <div class="flex gap-8 mt-6 md:mt-0 font-bold uppercase tracking-widest text-[10px]">
+            <a href="#" class="hover:text-indigo-600 transition-colors">Privacy</a>
+            <a href="#" class="hover:text-indigo-600 transition-colors">Terms</a>
+            <a href="#" class="hover:text-indigo-600 transition-colors">Sitemap</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

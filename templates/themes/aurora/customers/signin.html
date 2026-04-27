@@ -1,0 +1,62 @@
+{% extends theme_base_template %}
+{% load static %}
+
+{% block content %}
+<main class="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4">
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-10 md:p-12">
+            <div class="text-center mb-10">
+                <h1 class="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h1>
+                <p class="text-gray-500 mt-2">Sign in to your account to continue</p>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-600 font-bold">
+                        {{ form.non_field_errors.0 }}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-[10px] text-red-500 font-bold">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="w-full py-4 bg-black text-white font-extrabold rounded-2xl hover:bg-brand-600 transition-all shadow-xl hover:scale-[1.02] mt-4">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-10 pt-10 border-t border-gray-50 text-center">
+                <p class="text-sm text-gray-500">Don't have an account?</p>
+                <a href="{% url 'signup' %}" class="inline-block mt-2 text-brand-600 font-black hover:underline">Create an Account</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        background-color: #f9fafb;
+        border: 1px solid #f3f4f6;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        outline: none;
+    }
+    input:focus {
+        background-color: #fff;
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ shop_name }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static theme_css_path %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-left">
+            <a href="/" class="logo">{{ shop_name }}</a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Explore <i class="fas fa-chevron-down"></i></a></li>
+                    <li><a href="#">Hire Talent <i class="fas fa-chevron-down"></i></a></li>
+                    <li><a href="#">Categories <i class="fas fa-chevron-down"></i></a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="nav-right">
+            {% if user.is_authenticated %}
+                <a href="/cart/" class="btn-primary">View Cart</a>
+                <div class="nav-icons">
+                    <a href="#"><i class="far fa-bell"></i></a>
+                    <a href="/accounts/profile/" class="profile-pic" title="{{ user.username }}"></a>
+                    <a href="/accounts/signout/" title="Sign Out"><i class="fas fa-sign-out-alt"></i></a>
+                </div>
+            {% else %}
+                <a href="/accounts/signin/" class="btn-primary">Sign In</a>
+                <div class="nav-icons">
+                    <a href="/accounts/signup/">Sign Up</a>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if messages %}
+    <div class="container" style="padding-bottom: 0;">
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 {{ shop_name }}. Built with RetailSaaS Dribbble Theme.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,57 +1,223 @@
-﻿{% extends "themes/default/base.html" %}
+{% extends "themes/default/base.html" %}
+{% load static %}
 
 {% block content %}
-<h2>Checkout</h2>
-<p class="muted">Totals shown reflect current batch pricing.</p>
+<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+    
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Checkout</h1>
+        <p class="mt-2 text-sm text-gray-500">Totals shown reflect current batch pricing.</p>
+    </div>
 
-{% if not can_checkout %}
-  <p class="error">Some items exceed available stock. Please adjust quantities.</p>
-{% endif %}
+    {% if not can_checkout %}
+    <div class="rounded-md bg-red-50 p-4 mb-8 border border-red-200">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-400"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Cannot proceed with checkout</h3>
+                <div class="mt-2 text-sm text-red-700">
+                    <p>Some items exceed available stock. Please adjust quantities in your <a href="/cart/" class="font-medium underline hover:text-red-600">cart</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-<form method="post" class="checkout-form">
-  {% csrf_token %}
-  <div class="checkout-grid">
-    <div>
-      <label>Name</label>
-      <input type="text" name="customer_name" placeholder="Your name" value="{% if request.user.is_authenticated %}{{ request.user.customer.name }}{% endif %}" {% if request.user.is_authenticated %}readonly{% endif %} required />
+    <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start flex flex-col-reverse lg:flex-row">
+        
+        <!-- Left Column: Forms -->
+        <div class="lg:col-span-7 pt-10 lg:pt-0">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Contact & Shipping Information -->
+                <section aria-labelledby="shipping-heading" class="mb-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="shipping-heading" class="text-lg font-medium text-gray-900">Delivery Information</h2>
+                        {% if not request.user.is_authenticated %}
+                            <p class="text-sm font-medium text-gray-500">Already have an account? <a href="/accounts/signin/" class="text-brand-600 hover:text-brand-500 transition-colors">Log in</a></p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+                            <div class="mt-1">
+                                <input type="text" name="customer_name" placeholder="Enter your full name" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.customer.name }}{% endif %}" 
+                                       {% if request.user.is_authenticated %}readonly{% endif %} required 
+                                       class="block w-full rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500 sm:text-sm p-3 border {% if request.user.is_authenticated %}bg-gray-50 border-gray-200 text-gray-500{% else %}border-gray-300{% endif %}">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+                            <div class="mt-1">
+                                <input type="tel" name="customer_phone" placeholder="10-digit Phone number" maxlength="10" pattern="\d{10}" title="Must be exactly 10 digits" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.customer.phone }}{% endif %}" 
+                                       {% if request.user.is_authenticated %}readonly{% endif %} required 
+                                       class="block w-full rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500 sm:text-sm p-3 border {% if request.user.is_authenticated %}bg-gray-50 border-gray-200 text-gray-500{% else %}border-gray-300{% endif %}">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <div class="mt-1">
+                                <input type="email" name="customer_email" placeholder="email@example.com" 
+                                       value="{% if request.user.is_authenticated and request.user.customer.email %}{{ request.user.customer.email }}{% endif %}" 
+                                       class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500 sm:text-sm p-3 border">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Delivery Address <span class="text-red-500">*</span></label>
+                            <div class="mt-1">
+                                <textarea name="customer_address" placeholder="Enter your full street address, apartment, etc." required 
+                                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500 sm:text-sm p-3 border min-h-[120px]">{% if request.user.is_authenticated %}{{ request.user.customer.address }}{% endif %}</textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- UI Mockup: Delivery Method -->
+                <section aria-labelledby="delivery-heading" class="mb-10 opacity-70">
+                    <h2 id="delivery-heading" class="text-lg font-medium text-gray-900 mb-4 flex items-center justify-between">
+                        Delivery method
+                        <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Fixed for now</span>
+                    </h2>
+                    <div class="space-y-4">
+                        <label class="relative flex cursor-pointer rounded-lg border border-brand-500 bg-brand-50 p-4 shadow-sm focus:outline-none">
+                            <input type="radio" checked class="sr-only">
+                            <div class="flex w-full justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="h-4 w-4 rounded-full border border-transparent flex items-center justify-center bg-brand-600">
+                                        <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
+                                    </div>
+                                    <div class="ml-3 flex flex-col">
+                                        <span class="block text-sm font-medium text-brand-900">Standard Delivery</span>
+                                        <span class="block text-sm text-brand-700">Included in order</span>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-brand-900">Free</span>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- UI Mockup: Payment -->
+                <section aria-labelledby="payment-heading" class="mb-10 opacity-70">
+                    <h2 id="payment-heading" class="text-lg font-medium text-gray-900 mb-4 flex items-center justify-between">
+                        Payment
+                        <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Cash on Delivery selected</span>
+                    </h2>
+                    
+                    <div class="mt-4">
+                        <div class="grid grid-cols-4 gap-y-6 gap-x-4 border border-gray-200 rounded-lg p-6 bg-gray-50 shadow-sm relative overflow-hidden">
+                            <div class="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+                                <div class="bg-white px-4 py-2 rounded-full shadow-sm text-sm font-medium text-gray-600 flex items-center border border-gray-100">
+                                    <i class="fas fa-money-bill-wave mr-2 text-green-500"></i> Cash on Delivery is active
+                                </div>
+                            </div>
+                            
+                            <div class="col-span-4">
+                                <label class="block text-sm font-medium text-gray-400">Card number</label>
+                                <div class="mt-1">
+                                    <input type="text" disabled class="block w-full border-gray-200 bg-gray-100 rounded-md shadow-sm sm:text-sm p-3 border">
+                                </div>
+                            </div>
+
+                            <div class="col-span-4">
+                                <label class="block text-sm font-medium text-gray-400">Name on card</label>
+                                <div class="mt-1">
+                                    <input type="text" disabled class="block w-full border-gray-200 bg-gray-100 rounded-md shadow-sm sm:text-sm p-3 border">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <button type="submit" {% if not can_checkout %}disabled{% endif %} class="w-full bg-brand-600 border border-transparent rounded-md shadow-sm py-4 px-4 text-lg font-bold text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors {% if not can_checkout %}opacity-50 cursor-not-allowed hover:bg-brand-600{% endif %}">
+                        Confirm & Place Order
+                    </button>
+                    <p class="text-center text-xs text-gray-500 mt-4 flex justify-center items-center">
+                        <i class="fas fa-lock mr-1.5"></i> Secure 128-bit SSL Encrypted Connection
+                    </p>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="lg:col-span-5 bg-gray-50 rounded-lg border border-gray-200 shadow-sm top-24 lg:sticky sticky-0 mt-8 lg:mt-0 mb-8 lg:mb-0">
+            <div class="p-6 sm:p-8">
+                <h2 class="text-lg font-medium text-gray-900 mb-6">Order summary</h2>
+                
+                <ul class="divide-y divide-gray-200 mb-6">
+                    {% for item in items %}
+                    <li class="flex py-4">
+                        <div class="flex-shrink-0 relative">
+                            {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
+                            {% else %}
+                                <div class="w-20 aspect-[4/3] rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-400">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                            <span class="absolute -top-2 -right-2 bg-brand-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-sm">{{ item.qty }}</span>
+                        </div>
+                        <div class="ml-4 flex-1 flex flex-col justify-center">
+                            <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
+                            {% if item.batch_allocations %}
+                                <div class="mt-1">
+                                    {% for alloc in item.batch_allocations %}
+                                        <p class="text-xs text-gray-500">
+                                            {% if alloc.batch_id %}
+                                                Batch Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
+                                            {% else %}
+                                                Backorder Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
+                                            {% endif %}
+                                        </p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="ml-4 text-right flex flex-col justify-center">
+                            <p class="text-sm font-bold text-gray-900">Rs.{{ item.line_total }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <dl class="space-y-4 text-sm text-gray-600 border-t border-gray-200 pt-6">
+                    <div class="flex items-center text-brand-700 bg-brand-50 px-3 py-2 rounded-md mb-4">
+                        <i class="fas fa-truck mr-2"></i>
+                        <span>Expected: <strong>{{ expected_delivery_text }}</strong></span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <dt>Subtotal</dt>
+                        <dd class="font-medium text-gray-900">Rs.{{ estimated_total }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt>Delivery</dt>
+                        <dd class="font-medium text-gray-900">Free</dd>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-4 flex justify-between text-base font-medium text-gray-900">
+                        <dt>Total</dt>
+                        <dd class="text-xl font-bold text-brand-600">
+                            Rs.{{ estimated_total }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
     </div>
-    <div>
-      <label>Phone</label>
-      <input type="tel" name="customer_phone" placeholder="10-digit Phone number" maxlength="10" pattern="\d{10}" title="Must be exactly 10 digits" value="{% if request.user.is_authenticated %}{{ request.user.customer.phone }}{% endif %}" {% if request.user.is_authenticated %}readonly{% endif %} required />
-    </div>
-    <div>
-      <label>Email</label>
-      <input type="email" name="customer_email" placeholder="Email" value="{% if request.user.is_authenticated and request.user.customer.email %}{{ request.user.customer.email }}{% endif %}" />
-    </div>
-    <div>
-      <label>Address</label>
-      <input type="text" name="customer_address" placeholder="Delivery address" value="{% if request.user.is_authenticated %}{{ request.user.customer.address }}{% endif %}" required />
-    </div>
-  </div>
-  <h3>Order Summary</h3>
-<ul class="summary-list">
-  {% for item in items %}
-    <li>
-      {{ item.product.name }} x {{ item.qty }} — Rs.{{ item.line_total }}
-      {% if item.batch_allocations %}
-        <ul class="muted">
-          {% for alloc in item.batch_allocations %}
-            <li>
-              {% if alloc.batch_id %}
-                Batch price Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
-              {% else %}
-                Backorder price Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    </li>
-  {% endfor %}
-</ul>
-<p class="muted">Expected arriving: <strong>{{ expected_delivery_text }}</strong></p>
-  <p class="summary-total">Total: Rs.{{ estimated_total }}</p>
-  <button type="submit" class="btn primary" {% if not can_checkout %}disabled{% endif %}>Place Order</button>
-</form>
+</main>
 {% endblock %}
-

@@ -1,0 +1,125 @@
+{% extends theme_base_template %}
+{% load catalog_extras %}
+{% load static %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Discover Top Quality Products</h1>
+        <p>Browse our curated collection of {{ shop_name }}'s finest items, ready for immediate delivery.</p>
+        <div class="search-container">
+            <form action="/" method="get" class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q" placeholder="What are you looking for?" value="{{ request.GET.q }}">
+                <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+        {% if categories %}
+        <div class="popular-tags">
+            <span>Categories:</span>
+            {% for cat in categories|slice:":5" %}
+                <a href="/?category={{ cat.id }}" class="{% if current_category == cat.id %}active{% endif %}">{{ cat.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="hero-featured">
+        {% with featured=products.0 %}
+        {% if featured %}
+        <div class="featured-card">
+            {% if featured.image %}
+                <img src="{{ featured.image.url }}" alt="{{ featured.name }}">
+            {% else %}
+                <img src="{% static 'themes/dribbble/assets/hero.png' %}" alt="Placeholder">
+            {% endif %}
+            <div class="featured-overlay">
+                <div class="featured-info">
+                    <span class="badge">Trending Now</span>
+                    <h2>{{ featured.name }}</h2>
+                    <p>{{ featured.description|truncatewords:15 }}</p>
+                    <div class="featured-actions">
+                        <a href="/products/{{ featured.id }}/" class="btn-white">View Details</a>
+                        <form method="post" action="/cart/add/{{ featured.id }}/" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="qty" value="1" />
+                            <button type="submit" class="btn-circle"><i class="fas fa-plus"></i></button>
+                        </form>
+                    </div>
+                </div>
+                <div class="featured-footer">
+                    <div class="author">
+                        <div class="profile-pic" style="width: 24px; height: 24px;"></div>
+                        <span>Best Seller</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+</section>
+
+<section class="banner">
+    <div class="banner-content">
+        <span class="new-tag">NEW</span>
+        <p><strong>Fast Delivery Available</strong> We've improved our delivery network to get your favorite items to you even faster.</p>
+    </div>
+</section>
+
+<section class="filters-section">
+    <div class="category-filters">
+        <div class="filter-dropdown-container">
+            <button class="filter-dropdown">{% if current_category_name %}{{ current_category_name }}{% else %}All Products{% endif %} <i class="fas fa-chevron-down"></i></button>
+        </div>
+        <div class="categories">
+            <a href="/" class="{% if not current_category %}active{% endif %}">All</a>
+            {% for cat in categories %}
+                <a href="/?category={{ cat.id }}" class="{% if current_category == cat.id %}active{% endif %}">{{ cat.name }}</a>
+            {% endfor %}
+        </div>
+        <button class="filter-btn"><i class="fas fa-sliders-h"></i> Filters</button>
+    </div>
+</section>
+
+<section class="shots-grid">
+    {% for product in products %}
+    <div class="shot-card">
+        <div class="shot-image">
+            <a href="/products/{{ product.id }}/">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="placeholder-img" style="width:100%; height:100%; background:#f3f3f4; display:flex; align-items:center; justify-content:center; color:#9e9ea7;">No Image</div>
+                {% endif %}
+            </a>
+            <div class="shot-overlay">
+                <div class="shot-title">{{ product.name }}</div>
+                <div class="shot-actions">
+                    <form method="post" action="/cart/add/{{ product.id }}/">
+                        {% csrf_token %}
+                        <input type="hidden" name="qty" value="1" />
+                        <button type="submit" class="icon-btn" title="Add to Cart"><i class="fas fa-shopping-cart"></i></button>
+                    </form>
+                    <a href="/products/{{ product.id }}/" class="icon-btn" title="View Details"><i class="fas fa-eye"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="shot-info">
+            <div class="author">
+                <div class="profile-pic" style="width: 20px; height: 20px;"></div>
+                <span>Rs. {{ product.price_estimate }}</span>
+            </div>
+            <div class="stats">
+                {% with stock=inventory|dict_get:product.id %}
+                <span><i class="fas fa-cubes"></i> {{ stock|default:0 }} in stock</span>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="container">
+        <p>No products found matched your criteria.</p>
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}

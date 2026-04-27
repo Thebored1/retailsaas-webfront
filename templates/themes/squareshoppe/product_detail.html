@@ -1,0 +1,229 @@
+{% extends theme_base_template %}
+{% load static catalog_extras %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+    <!-- BREADCRUMB -->
+    <div class="bg-white border-b border-gray-100">
+      <div class="container-max mx-auto px-4 py-4">
+        <nav class="text-sm text-gray-500 flex items-center gap-2">
+          <a href="{% url 'product_list' %}" class="hover:text-indigo-600 transition-colors">Home</a>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          {% if product.category %}
+            <a href="{% url 'product_list' %}?category={{ product.category.id }}" class="hover:text-indigo-600 transition-colors">{{ product.category.name }}</a>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          {% endif %}
+          <span class="text-gray-900 font-medium line-clamp-1">{{ product.name }}</span>
+        </nav>
+      </div>
+    </div>
+
+    <!-- PRODUCT DETAIL SECTION -->
+    <div class="container-max mx-auto px-4 py-12">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <!-- PRODUCT IMAGES -->
+        <div class="lg:col-span-7">
+          <div class="sticky top-28 space-y-4">
+            <div class="bg-white rounded-sm shadow-sm overflow-hidden border border-gray-100 aspect-square">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+              {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">No Image Available</div>
+              {% endif %}
+            </div>
+            
+            <!-- Thumbnail placeholders or extra images could go here -->
+            <div class="grid grid-cols-4 gap-4">
+                <div class="aspect-square bg-gray-100 rounded-sm overflow-hidden border-2 border-indigo-600">
+                    {% if product.image %}<img src="{{ product.image.url }}" class="w-full h-full object-cover">{% endif %}
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRODUCT INFO -->
+        <div class="lg:col-span-5 flex flex-col">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                {% if lowest_price < product.price_estimate %}
+                    <span class="text-[10px] font-bold text-white bg-red-600 px-2 py-1 rounded-sm uppercase tracking-wider">Sale</span>
+                {% endif %}
+                {% if qty_available > 0 %}
+                    <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-sm uppercase tracking-wider">In Stock</span>
+                {% else %}
+                    {% if allow_backorders %}
+                        <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-sm uppercase tracking-wider">Backorder</span>
+                    {% else %}
+                        <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-sm uppercase tracking-wider">Out of Stock</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="text-sm text-gray-500 font-medium">SKU: {{ product.id|stringformat:"05d" }}</div>
+          </div>
+
+          <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mt-4 leading-tight">{{ product.name }}</h1>
+          
+          <div class="mt-6 flex items-baseline gap-4">
+            <span class="text-4xl font-bold text-gray-900">₹{{ lowest_price }}</span>
+            {% if lowest_price < product.price_estimate %}
+                <span class="text-xl text-gray-400 line-through">₹{{ product.price_estimate }}</span>
+                <span class="text-sm font-bold text-red-600">Save ₹{{ product.price_estimate|sub:lowest_price }}</span>
+            {% endif %}
+          </div>
+
+          <p class="mt-8 text-gray-600 leading-relaxed text-lg">{{ product.description }}</p>
+
+          <form action="{% url 'add_to_cart' product.id %}" method="post" class="mt-10 space-y-8">
+            {% csrf_token %}
+            
+            {% if product.is_active %}
+            <!-- QUANTITY SECTOR -->
+            <div>
+              <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Quantity</h3>
+              <div class="mt-4 flex items-center gap-4">
+                <div class="flex items-center border-2 border-gray-100 rounded-sm overflow-hidden">
+                    <button type="button" onclick="changeQty(-1)" class="w-12 h-12 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors border-r border-gray-100 font-bold text-lg">-</button>
+                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ qty_available }}" class="w-16 h-12 text-center focus:outline-none font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    <button type="button" onclick="changeQty(1)" class="w-12 h-12 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors border-l border-gray-100 font-bold text-lg">+</button>
+                </div>
+                <span class="text-sm text-gray-500 font-medium">
+                    {% if qty_available > 0 %}
+                        {{ qty_available }} available
+                    {% elif allow_backorders %}
+                        Ships in 5-7 days
+                    {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button type="submit" class="flex-1 bg-indigo-600 text-white px-8 py-4 rounded-sm font-bold text-lg shadow-lg hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:translate-y-0"
+                      {% if qty_available <= 0 and not allow_backorders %}disabled{% endif %}>
+                {% if qty_available <= 0 and not allow_backorders %}
+                    Sold Out
+                {% else %}
+                    Add to Cart
+                {% endif %}
+              </button>
+              
+              <button type="button" class="w-14 h-14 bg-white border-2 border-gray-100 rounded-sm flex items-center justify-center hover:border-indigo-600 hover:text-indigo-600 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+            </div>
+            {% endif %}
+          </form>
+
+          <!-- FEATURES LIST -->
+          <div class="mt-12 pt-12 border-t border-gray-100 grid grid-cols-2 gap-6">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 1.414 5 5 0 010 7.071 1 1 0 01-1.415-1.414 3 3 0 000-4.242 1 1 0 010-1.415zM10 9a1 1 0 011 1v.01a1 1 0 11-2 0V10a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-gray-900 text-sm">Free Express Shipping</p>
+                <p class="text-xs text-gray-500 mt-1">On orders over ₹1,000</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-gray-900 text-sm">Easy Returns</p>
+                <p class="text-xs text-gray-500 mt-1">30-day money back guarantee</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS SECTION -->
+    <div class="bg-white border-y border-gray-100 mt-12">
+      <div class="container-max mx-auto px-4">
+        <div class="flex gap-12 overflow-x-auto hide-scrollbar">
+          <button class="py-6 font-bold text-indigo-600 border-b-2 border-indigo-600 whitespace-nowrap">Product Information</button>
+          <button class="py-6 font-bold text-gray-400 hover:text-gray-900 transition-colors whitespace-nowrap">Technical Details</button>
+          <button class="py-6 font-bold text-gray-400 hover:text-gray-900 transition-colors whitespace-nowrap">Shipping & Returns</button>
+        </div>
+        
+        <div class="py-12 max-w-4xl">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">About this product</h3>
+            <div class="prose prose-indigo text-gray-600 leading-loose">
+                <p>{{ product.description }}</p>
+                <ul class="mt-8 space-y-4">
+                    <li class="flex items-start gap-3">
+                        <svg class="h-6 w-6 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Premium quality materials and craftsmanship.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="h-6 w-6 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Designed for durability and long-lasting use.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+    <section class="container-max mx-auto px-4 py-20">
+      <div class="flex items-center justify-between mb-10">
+        <h2 class="text-2xl font-bold text-gray-900">You may also like</h2>
+        <a href="{% url 'product_list' %}" class="text-indigo-600 font-bold hover:underline">View all</a>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {% for rel in related_products %}
+        <article class="bg-white p-4 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
+          <a href="{% url 'product_detail' rel.id %}" class="block bg-gray-50 rounded-sm overflow-hidden aspect-square mb-4 relative">
+            {% if rel.image %}
+              <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            {% else %}
+              <div class="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+            {% endif %}
+          </a>
+          <div class="flex-1">
+            <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                <a href="{% url 'product_detail' rel.id %}">{{ rel.name }}</a>
+            </h3>
+            <div class="mt-2 text-lg font-bold text-gray-900">₹{{ related_price_map|get_item:rel.id|default:rel.price_estimate }}</div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeQty(delta) {
+        const input = document.getElementById('quantity');
+        let val = parseInt(input.value) + delta;
+        const max = parseInt(input.max) || 999;
+        if (val < 1) val = 1;
+        if (val > max) val = max;
+        input.value = val;
+    }
+</script>
+<style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+{% endblock %}

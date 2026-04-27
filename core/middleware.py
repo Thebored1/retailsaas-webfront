@@ -31,15 +31,10 @@ class DeliveryAgentAccessMiddleware:
                 )
 
                 if not path.startswith(allowed_prefixes):
-                    try:
-                        theme = ShopConfig.get().shop_template or "default"
-                    except Exception:
-                        theme = "default"
-                    template = f"themes/{theme}/delivery/denied.html"
                     messages.error(
                         request,
                         "Delivery agent accounts can only access the delivery console.",
                     )
-                    return render(request, template, status=403)
+                    return redirect("/delivery/")
 
         return self.get_response(request)

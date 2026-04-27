@@ -1,0 +1,148 @@
+{% extends theme_base_template %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+    <div class="bg-indigo-600 py-16">
+        <div class="container-max mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-4xl font-bold text-white border-2 border-white/30">
+                    {{ user.customer.name|slice:":1"|upper }}
+                </div>
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl font-extrabold text-white">{{ user.customer.name }}</h1>
+                    <p class="text-indigo-100 mt-1">{{ user.customer.email }} | {{ user.customer.phone }}</p>
+                    <div class="mt-4 flex flex-wrap justify-center md:justify-start gap-4">
+                        <a href="{% url 'signout' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-sm text-sm font-bold transition-all border border-white/20">Sign Out</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-max mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- LEFT: Profile Edit -->
+            <div class="lg:col-span-4">
+                <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8 sticky top-28">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Edit Profile</h2>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="mb-4 p-3 rounded-sm text-xs font-bold {% if message.tags == 'success' %}bg-green-50 text-green-600{% else %}bg-red-50 text-red-600{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <p class="mt-1 text-xs text-red-600 font-bold">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="w-full bg-indigo-600 text-white px-6 py-3 rounded-sm font-bold shadow-lg hover:bg-indigo-700 transition-all">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RIGHT: Orders -->
+            <div class="lg:col-span-8 space-y-10">
+                <!-- Online Orders -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                        Online Orders
+                        <span class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full">{{ online_orders|length }}</span>
+                    </h2>
+                    
+                    {% if online_orders %}
+                    <div class="bg-white rounded-sm shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+                        {% for order in online_orders %}
+                        <div class="p-6 hover:bg-gray-50 transition-colors">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-bold text-gray-900">#{{ order.id|stringformat:"06d" }}</span>
+                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                                            {% if order.status == 'DELIVERED' %}bg-green-100 text-green-700
+                                            {% elif order.status == 'CANCELLED' %}bg-red-100 text-red-700
+                                            {% else %}bg-indigo-100 text-indigo-700{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mt-1">{{ order.created_at|date:"M d, Y | h:i A" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-extrabold text-gray-900">₹{{ order.estimated_total }}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Cash on Delivery</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        <div class="p-12 text-center bg-white rounded-sm border border-dashed border-gray-200">
+                            <p class="text-gray-400">No online orders yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Store Transactions -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                        Store Purchases
+                        <span class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full">{{ retail_txns|length }}</span>
+                    </h2>
+                    
+                    {% if retail_txns %}
+                    <div class="bg-white rounded-sm shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+                        {% for txn in retail_txns %}
+                        <div class="p-6 hover:bg-gray-50 transition-colors">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <p class="font-bold text-gray-900">Transaction ID: {{ txn.external_id|default:txn.id }}</p>
+                                    <p class="text-sm text-gray-500 mt-1">{{ txn.date|date:"M d, Y" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-extrabold text-gray-900">₹{{ txn.total_amount }}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Physical Store</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        <div class="p-12 text-center bg-white rounded-sm border border-dashed border-gray-200">
+                            <p class="text-gray-400">No store transactions linked to this phone number.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        input, textarea, select {
+            width: 100%;
+            border: 2px solid #f3f4f6 !important;
+            border-radius: 6px !important;
+            padding: 0.6rem 1rem !important;
+            background-color: #f9fafb !important;
+            transition: all 0.2s !important;
+            font-size: 0.875rem !important;
+        }
+        input:focus, textarea:focus {
+            outline: none !important;
+            border-color: #4f46e5 !important;
+            background-color: #ffffff !important;
+        }
+    </style>
+{% endblock %}

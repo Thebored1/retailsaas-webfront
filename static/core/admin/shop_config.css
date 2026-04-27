@@ -1,0 +1,47 @@
+/* shop_config.css */
+.tab-container {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 10px 0;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    font-weight: bold;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    background: #eee;
+}
+
+.tab-button.active {
+    background: #79aec8;
+    color: white;
+    border-color: #79aec8;
+}
+
+fieldset.tabbed {
+    display: none;
+    border: 1px solid #eee;
+    padding: 20px;
+    margin-top: -1px;
+}
+
+fieldset.tabbed.active {
+    display: block;
+}
+
+/* Hide the default H2 inside fieldsets when tabbed */
+fieldset.tabbed h2 {
+    display: none;
+}

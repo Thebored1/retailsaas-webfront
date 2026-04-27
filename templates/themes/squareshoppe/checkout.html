@@ -1,0 +1,151 @@
+{% extends theme_base_template %}
+{% load static %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+    <!-- PAGE TITLE -->
+    <div class="bg-white border-b border-gray-100">
+      <div class="container-max mx-auto px-4 py-6">
+        <h1 class="text-2xl font-extrabold text-gray-900">Checkout</h1>
+      </div>
+    </div>
+
+    <!-- CHECKOUT CONTENT -->
+    <div class="container-max mx-auto px-4 py-12">
+      <form action="{% url 'checkout_view' %}" method="post" class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {% csrf_token %}
+        <!-- CHECKOUT FORM -->
+        <div class="lg:col-span-7 space-y-8">
+          <!-- CONTACT INFO -->
+          <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Contact Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+                <input type="text" name="customer_name" value="{{ user.customer.name|default:'' }}" required
+                       class="w-full border-2 border-gray-100 rounded-sm px-4 py-3 focus:ring-2 focus:ring-indigo-600 focus:outline-none bg-gray-50 transition-all" 
+                       placeholder="Enter your full name" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
+                <input type="email" name="customer_email" value="{{ user.customer.email|default:'' }}" required
+                       class="w-full border-2 border-gray-100 rounded-sm px-4 py-3 focus:ring-2 focus:ring-indigo-600 focus:outline-none bg-gray-50 transition-all" 
+                       placeholder="you@example.com" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Phone Number</label>
+                <input type="tel" name="customer_phone" value="{{ user.customer.phone|default:'' }}" required
+                       class="w-full border-2 border-gray-100 rounded-sm px-4 py-3 focus:ring-2 focus:ring-indigo-600 focus:outline-none bg-gray-50 transition-all" 
+                       placeholder="+91 00000 00000" />
+              </div>
+            </div>
+          </div>
+
+          <!-- SHIPPING ADDRESS -->
+          <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Shipping Address</h2>
+            <div class="space-y-6">
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Complete Address</label>
+                <textarea name="customer_address" rows="3" required
+                          class="w-full border-2 border-gray-100 rounded-sm px-4 py-3 focus:ring-2 focus:ring-indigo-600 focus:outline-none bg-gray-50 transition-all" 
+                          placeholder="Street, Landmark, City, Pincode">{{ user.customer.address|default:'' }}</textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYMENT METHOD (Simulation) -->
+          <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Payment Method</h2>
+            <div class="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-sm flex items-center gap-4">
+                <div class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-bold text-indigo-900">Cash on Delivery</p>
+                    <p class="text-sm text-indigo-700">Pay securely when your order is delivered.</p>
+                </div>
+            </div>
+          </div>
+
+          <button type="submit" 
+                  class="w-full bg-indigo-600 text-white px-8 py-5 rounded-sm text-center font-bold text-xl shadow-xl hover:bg-indigo-700 hover:-translate-y-1 transition-all active:translate-y-0 {% if not items or not can_checkout %}pointer-events-none opacity-50{% endif %}"
+                  {% if not items or not can_checkout %}disabled{% endif %}>
+              Place Order — ₹{{ estimated_total }}
+          </button>
+          
+          {% if not can_checkout %}
+            <p class="text-center text-red-600 font-bold mt-4">Some items are out of stock. Please update your cart.</p>
+          {% endif %}
+        </div>
+
+        <!-- ORDER SUMMARY SIDEBAR -->
+        <div class="lg:col-span-5">
+          <div class="bg-white rounded-sm shadow-sm p-8 border border-gray-100 sticky top-28">
+            <h2 class="text-xl font-bold text-gray-900 border-b border-gray-100 pb-4">Order Summary</h2>
+            
+            <!-- Cart Items Summary -->
+            <div class="mt-6 space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {% for item in items %}
+              <div class="flex gap-4 group">
+                <div class="w-20 h-20 bg-gray-50 rounded-sm overflow-hidden shrink-0 border border-gray-100">
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">No Image</div>
+                  {% endif %}
+                </div>
+                <div class="flex-1 flex flex-col justify-center">
+                  <div class="flex justify-between items-start">
+                    <h3 class="text-sm font-bold text-gray-900 line-clamp-2">{{ item.product.name }}</h3>
+                    <div class="text-sm font-bold text-gray-900 ml-2 whitespace-nowrap">₹{{ item.line_total }}</div>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1">Quantity: {{ item.qty }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="mt-8 pt-8 border-t-2 border-dashed border-gray-100 space-y-4">
+              <div class="flex justify-between text-gray-600">
+                <span class="font-medium">Subtotal</span>
+                <span class="font-bold text-gray-900">₹{{ estimated_total }}</span>
+              </div>
+              <div class="flex justify-between text-gray-600">
+                <span class="font-medium">Delivery</span>
+                <span class="text-green-600 font-bold">FREE</span>
+              </div>
+              <div class="flex justify-between pt-4 border-t border-gray-100">
+                <span class="text-lg font-bold text-gray-900">Total</span>
+                <span class="text-3xl font-extrabold text-indigo-600">₹{{ estimated_total }}</span>
+              </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-50 rounded-sm border border-gray-100 flex items-center gap-4">
+                <div class="w-10 h-10 bg-white text-indigo-600 flex items-center justify-center rounded-sm shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-900 uppercase tracking-widest">Expected Delivery</p>
+                    <p class="text-sm text-gray-600 font-medium mt-0.5">{{ expected_delivery_text }}</p>
+                </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+</style>
+{% endblock %}

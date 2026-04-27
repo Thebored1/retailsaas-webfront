@@ -1,0 +1,75 @@
+{% extends theme_base_template %}
+{% load static %}
+
+{% block title %}Order Confirmed{% endblock %}
+
+{% block content %}
+    <div class="container-max mx-auto px-4 py-20 text-center">
+        <div class="max-w-2xl mx-auto">
+            <div class="w-24 h-24 bg-green-100 text-green-600 flex items-center justify-center rounded-full mx-auto mb-8 animate-bounce">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            
+            <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">Thank you for your order!</h1>
+            <p class="mt-4 text-xl text-gray-500">Order #{{ order.id|stringformat:"06d" }} has been placed successfully.</p>
+            
+            <div class="mt-12 bg-white rounded-sm shadow-sm border border-gray-100 p-8 text-left">
+                <h2 class="text-xl font-bold text-gray-900 border-b border-gray-100 pb-4 mb-6">Order Details</h2>
+                
+                <div class="space-y-6">
+                    {% for item in items %}
+                    <div class="flex justify-between items-center">
+                        <div class="flex gap-4">
+                            <div class="text-sm font-bold text-indigo-600 bg-indigo-50 w-8 h-8 flex items-center justify-center rounded-sm">
+                                {{ item.qty }}x
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">{{ item.product_name }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Unit Price: ₹{{ item.unit_price }}</p>
+                            </div>
+                        </div>
+                        <div class="font-bold text-gray-900">₹{{ item.line_total }}</div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="pt-6 border-t-2 border-dashed border-gray-100 flex justify-between items-end">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Amount Paid</p>
+                            <p class="text-sm text-gray-500 mt-1 italic">Cash on Delivery</p>
+                        </div>
+                        <div class="text-3xl font-extrabold text-indigo-600">₹{{ order.estimated_total }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="p-6 bg-white rounded-sm border border-gray-100 shadow-sm flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Expected Delivery</p>
+                    <p class="font-bold text-gray-900">{{ order.expected_delivery_text }}</p>
+                </div>
+                <div class="p-6 bg-white rounded-sm border border-gray-100 shadow-sm flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Order Confirmation</p>
+                    <p class="font-bold text-gray-900">Sent to your email</p>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <a href="{% url 'product_list' %}" class="inline-block bg-indigo-600 text-white px-10 py-4 rounded-sm font-bold text-lg shadow-lg hover:bg-indigo-700 transition-all">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction
 from .models import Customer
 from django.contrib.auth.models import User
 
@@ -19,6 +20,8 @@ class SignUpForm(forms.ModelForm):
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
+        if Customer.objects.filter(phone=phone).exists():
+            raise forms.ValidationError("A customer with this phone number already exists.")
         if User.objects.filter(username=str(phone)).exists():
             raise forms.ValidationError("An account with this phone number already exists.")
         return phone
@@ -26,16 +29,19 @@ class SignUpForm(forms.ModelForm):
     def save(self, commit=True):
         customer = super().save(commit=False)
         customer.name = customer.name.title()
-        
-        # Create the underlying Django User where username is the phone number
-        user = User.objects.create_user(
-            username=str(self.cleaned_data['phone']),
-            password=self.cleaned_data['password'],
-            first_name=customer.name.split()[0], # use the newly title-cased name
-            email=self.cleaned_data.get('email', '')
-        )
-        customer.user = user
-        if commit:
+
+        if not commit:
+            return customer
+
+        with transaction.atomic():
+            # Create the underlying Django User where username is the phone number
+            user = User.objects.create_user(
+                username=str(self.cleaned_data['phone']),
+                password=self.cleaned_data['password'],
+                first_name=customer.name.split()[0],  # use the newly title-cased name
+                email=self.cleaned_data.get('email', '')
+            )
+            customer.user = user
             customer.save()
         return customer
 

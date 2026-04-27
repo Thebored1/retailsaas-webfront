@@ -1,0 +1,100 @@
+{% extends "themes/aurora/base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 py-12">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-8">Shopping Cart</h1>
+
+    {% if items %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {# Cart Items #}
+        <div class="lg:col-span-2 space-y-6">
+            {% for item in items %}
+            <div class="flex flex-col sm:flex-row gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm relative group">
+                <div class="w-full sm:w-32 aspect-square rounded-xl overflow-hidden bg-white shadow-sm">
+                    {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-200">
+                            <i class="fas fa-image text-3xl"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">
+                                <a href="/products/{{ item.product.id }}/" class="hover:text-brand-600 transition-colors">{{ item.product.name }}</a>
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1">Unit: {{ item.product.uom }}</p>
+                        </div>
+                        <a href="/cart/remove/{{ item.product.id }}/" class="text-gray-400 hover:text-red-500 transition-colors p-2">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                    <div class="flex items-center justify-between mt-6">
+                        <form method="post" action="/cart/update/{{ item.product.id }}/" class="flex items-center bg-white border border-gray-200 rounded-xl shadow-sm h-11">
+                            {% csrf_token %}
+                            <button type="button" onclick="this.nextElementSibling.stepDown(); this.form.submit()" class="px-3 hover:bg-gray-50 transition-colors h-full flex items-center">
+                                <i class="fas fa-minus text-[10px]"></i>
+                            </button>
+                            <input type="number" name="qty" value="{{ item.qty }}" min="1" {% if not allow_backorders %}max="{{ item.qty_available }}"{% endif %} class="w-12 text-center font-bold text-sm outline-none bg-transparent" onchange="this.form.submit()">
+                            <button type="button" onclick="this.previousElementSibling.stepUp(); this.form.submit()" class="px-3 hover:bg-gray-50 transition-colors h-full flex items-center">
+                                <i class="fas fa-plus text-[10px]"></i>
+                            </button>
+                        </form>
+                        <div class="text-xl font-extrabold text-gray-900">Rs.{{ item.line_total }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# Order Summary #}
+        <div class="lg:col-span-1">
+            <div class="bg-gray-900 text-white rounded-3xl p-8 shadow-2xl sticky top-24">
+                <h3 class="text-2xl font-bold mb-8">Order Summary</h3>
+                <div class="space-y-4 text-gray-400 border-b border-gray-800 pb-8 mb-8">
+                    <div class="flex justify-between">
+                        <span>Subtotal</span>
+                        <span class="text-white font-bold">Rs.{{ estimated_total }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Delivery</span>
+                        <span class="text-green-400 font-bold">Calculated at next step</span>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-xl flex items-start gap-3 mt-6">
+                        <i class="fas fa-truck text-brand-500 mt-1"></i>
+                        <div class="text-xs">
+                            <p class="text-white font-bold mb-1">Estimated Delivery</p>
+                            <p>{{ expected_delivery_text }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-lg font-bold">Total</span>
+                    <span class="text-3xl font-extrabold text-brand-500">Rs.{{ estimated_total }}</span>
+                </div>
+                <a href="/checkout/" class="block w-full text-center py-4 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 transition-all shadow-lg hover:scale-[1.02]">
+                    Checkout
+                </a>
+                <a href="/" class="block text-center mt-6 text-sm text-gray-500 hover:text-white transition-colors">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <i class="fas fa-shopping-bag text-3xl text-gray-200"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900">Your cart is empty</h2>
+        <p class="text-gray-500 mt-2 mb-8">Discover our premium collections and find something you love.</p>
+        <a href="/" class="inline-block px-10 py-4 bg-black text-white font-bold rounded-2xl hover:bg-brand-600 transition-all shadow-lg">
+            Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</main>
+{% endblock %}

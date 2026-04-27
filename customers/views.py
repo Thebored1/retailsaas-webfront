@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .forms import SignUpForm, SignInForm, ProfileEditForm
 from orders.models import OnlineOrder, RetailTransaction
 
@@ -21,6 +22,7 @@ def _theme_template(template_name: str) -> str:
         base = "default"
     return f"themes/{base}/{template_name}"
 
+@ensure_csrf_cookie
 def signup_view(request):
     if request.user.is_authenticated:
         if _is_delivery_agent(request.user):
@@ -41,6 +43,7 @@ def signup_view(request):
     # We will need to create 'customers/signup.html'
     return render(request, _theme_template('customers/signup.html'), {'form': form})
 
+@ensure_csrf_cookie
 def signin_view(request):
     if request.user.is_authenticated:
         if _is_delivery_agent(request.user):
@@ -60,8 +63,8 @@ def signin_view(request):
                     messages.error(request, "Please sign in from the delivery console.")
                     return render(request, _theme_template('customers/signin.html'), {'form': form})
                 if not hasattr(user, "customer"):
-                    messages.error(request, "Customer account not found.")
-                    return render(request, _theme_template('customers/signin.html'), {'form': form})
+                    messages.error(request, "Customer account not found. Please register as a customer.")
+                    return redirect('signin')
                 login(request, user)
                 messages.success(request, f"Welcome back!")
                 # Redirect back to where they came from if 'next' is passed, else home
@@ -86,8 +89,9 @@ def profile_view(request):
         logout(request)
         return redirect('delivery_login')
     if not hasattr(request.user, "customer"):
-        messages.error(request, "Customer profile not found.")
-        return redirect('product_list')
+        logout(request)
+        messages.error(request, "Customer profile not found. Please sign in with a customer account.")
+        return redirect('signin')
     customer = request.user.customer
     
     if request.method == 'POST':

@@ -1,0 +1,56 @@
+{% extends "themes/aurora/base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4">
+    <div class="max-w-2xl w-full text-center">
+        
+        <div class="mb-12 relative inline-block">
+            <div class="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center mx-auto relative z-10 shadow-2xl">
+                <i class="fas fa-check text-5xl text-white"></i>
+            </div>
+            <div class="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20"></div>
+        </div>
+
+        <h1 class="text-5xl font-black text-gray-900 tracking-tight mb-4">Order Confirmed!</h1>
+        <p class="text-gray-500 text-xl mb-12">Thank you for your purchase. Order <span class="text-black font-bold">#{{ order.id }}</span> is on its way.</p>
+        
+        <div class="bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden text-left mb-12">
+            <div class="p-8 bg-black text-white flex justify-between items-center">
+                <h3 class="text-xl font-bold tracking-tight">Receipt</h3>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ items|length }} Items</span>
+            </div>
+            
+            <div class="p-8 space-y-6">
+                {% if items %}
+                    <div class="divide-y divide-gray-100">
+                        {% for item in items %}
+                            <div class="py-5 first:pt-0 last:pb-0 flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-gray-900">{{ item.product_name }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Quantity: {{ item.qty }}</p>
+                                </div>
+                                <span class="font-black text-gray-900">Rs.{{ item.line_total }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="pt-8 border-t-2 border-dashed border-gray-100 flex justify-between items-center">
+                    <span class="text-lg font-bold text-gray-500">Total Charged</span>
+                    <span class="text-4xl font-black text-brand-600">Rs.{{ order.estimated_total }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-6 justify-center">
+            <a href="/" class="w-full sm:w-auto bg-black text-white font-extrabold py-5 px-12 rounded-2xl hover:bg-brand-600 transition-all shadow-xl hover:scale-105">
+                Continue Shopping
+            </a>
+            <a href="{% url 'profile' %}" class="w-full sm:w-auto bg-white text-gray-700 font-extrabold py-5 px-12 rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all shadow-sm">
+                Track My Order
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

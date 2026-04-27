@@ -1,40 +1,110 @@
-﻿{% extends "themes/default/base.html" %}
+{% extends "themes/default/base.html" %}
+{% load static %}
 
 {% block content %}
-<h2>Your Cart</h2>
-{% if items %}
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Qty</th>
-        <th>Estimate</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in items %}
-        <tr>
-          <td>{{ item.product.name }}</td>
-          <td>
-            <form method="post" action="/cart/update/{{ item.product.id }}/" class="inline-form">
-              {% csrf_token %}
-              <input type="number" name="qty" value="{{ item.qty }}" min="1" {% if not allow_backorders %}max="{{ item.qty_available }}"{% endif %} />
-              <button type="submit" class="btn small">Update</button>
-            </form>
-          </td>
-          <td>Rs.{{ item.line_total }}</td>
-          <td><a class="btn small" href="/cart/remove/{{ item.product.id }}/">Remove</a></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <div class="summary">
-    <p>Estimated total: <strong>Rs.{{ estimated_total }}</strong></p>
-    <p class="muted">Expected arriving: <strong>{{ expected_delivery_text }}</strong></p>
-    <a class="btn primary" href="/checkout/">Proceed to Checkout</a>
-  </div>
-{% else %}
-  <p>Your cart is empty.</p>
-{% endif %}
+<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-8">Shopping Cart</h1>
+
+    {% if items %}
+    <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
+        <!-- Cart Items -->
+        <div class="lg:col-span-8">
+            <div class="border-b border-gray-200 pb-4 mb-6 hidden sm:grid sm:grid-cols-6 gap-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
+                <div class="sm:col-span-3">Product</div>
+                <div class="sm:col-span-1 text-center">Quantity</div>
+                <div class="sm:col-span-1 text-right">Price</div>
+                <div class="sm:col-span-1"></div>
+            </div>
+
+            <ul class="divide-y divide-gray-200">
+                {% for item in items %}
+                <li class="flex py-6 sm:py-8 sm:grid sm:grid-cols-6 gap-4 items-center">
+                    <div class="flex-shrink-0 sm:col-span-3 flex items-center">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-32 aspect-[4/3] rounded-md object-center object-cover border border-gray-100">
+                        {% else %}
+                            <div class="w-32 aspect-[4/3] bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-gray-200">
+                                <i class="fas fa-image text-2xl"></i>
+                            </div>
+                        {% endif %}
+                        <div class="ml-4 sm:ml-6 flex flex-col">
+                            <h3 class="text-base font-medium text-gray-900">
+                                <a href="/products/{{ item.product.id }}/" class="hover:text-brand-600">{{ item.product.name }}</a>
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">Unit: {{ item.product.uom }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 sm:mt-0 sm:col-span-1 flex justify-start sm:justify-center">
+                        <form method="post" action="/cart/update/{{ item.product.id }}/" class="flex items-center gap-2">
+                            {% csrf_token %}
+                            <input type="number" name="qty" value="{{ item.qty }}" min="1" {% if not allow_backorders %}max="{{ item.qty_available }}"{% endif %} class="w-16 text-center border-gray-300 rounded-md focus:ring-brand-500 focus:border-brand-500 text-sm p-2 shadow-sm">
+                            <button type="submit" class="text-xs font-medium text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-2 py-1 rounded transition-colors">Update</button>
+                        </form>
+                    </div>
+                    
+                    <div class="mt-4 sm:mt-0 sm:col-span-1 text-right sm:text-right">
+                        <p class="text-base font-medium text-gray-900">Rs.{{ item.line_total }}</p>
+                    </div>
+                    
+                    <div class="mt-4 sm:mt-0 sm:col-span-1 text-right flex sm:justify-end">
+                        <a href="/cart/remove/{{ item.product.id }}/" class="text-sm font-medium text-red-600 hover:text-red-500 focus:outline-none flex items-center justify-end">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span class="sr-only sm:not-sr-only sm:inline">Remove</span>
+                        </a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="mt-16 lg:mt-0 lg:col-span-4 bg-gray-50 rounded-lg border border-gray-200 p-6 sm:p-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-6">Order Summary</h2>
+            <dl class="space-y-4 text-sm text-gray-600">
+                <div class="flex justify-between">
+                    <dt>Subtotal</dt>
+                    <dd class="font-medium text-gray-900">Rs.{{ estimated_total }}</dd>
+                </div>
+                <!-- You can add shipping/tax here if your backend provides it later -->
+                
+                <div class="border-t border-gray-200 pt-4 flex justify-between text-base font-medium text-gray-900">
+                    <dt>Estimated Total</dt>
+                    <dd class="text-xl text-brand-600 font-bold">Rs.{{ estimated_total }}</dd>
+                </div>
+            </dl>
+            
+            <div class="mt-6">
+                <div class="bg-blue-50 text-blue-800 p-3 rounded-md mb-6 flex items-start text-sm">
+                    <i class="fas fa-calendar-alt mt-0.5 mr-2"></i>
+                    <div>
+                        <span class="font-semibold block mb-1">Expected arriving:</span>
+                        {{ expected_delivery_text }}
+                    </div>
+                </div>
+
+                <a href="/checkout/" class="w-full bg-brand-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 focus:ring-offset-gray-50 block text-center transition-colors">
+                    Proceed to Checkout
+                </a>
+            </div>
+            <div class="mt-6 text-center text-sm text-gray-500">
+                <p>
+                    or <a href="/" class="text-brand-600 font-medium hover:text-brand-500 transition-colors">Continue Shopping<span aria-hidden="true"> &rarr;</span></a>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-16 px-4 sm:px-6 lg:px-8">
+        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 mb-6 text-gray-400">
+            <i class="fas fa-shopping-bag text-4xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900 mb-2">Your cart is empty</h2>
+        <p class="text-gray-500 mb-8 max-w-md mx-auto">Looks like you haven't added anything to your cart yet. Discover our premium collections and find something you love.</p>
+        <a href="/" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 transition-colors">
+            Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</main>
 {% endblock %}

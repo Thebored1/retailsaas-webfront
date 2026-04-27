@@ -6,6 +6,7 @@ urlpatterns = [
     path("sync/inventory", views.SyncInventoryView.as_view(), name="sync_inventory"),
     path("sync/batches", views.SyncBatchesView.as_view(), name="sync_batches"),
     path("sync/customers", views.SyncCustomersView.as_view(), name="sync_customers"),
+    path("sync/categories", views.SyncCategoriesView.as_view(), name="sync_categories"),
     path("sync/reset", views.SyncResetView.as_view(), name="sync_reset"),
     path("orders/pending", views.PendingOrdersView.as_view(), name="pending_orders"),
     path("orders/list", views.OrdersListView.as_view(), name="orders_list"),

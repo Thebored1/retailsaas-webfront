@@ -1,0 +1,230 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ shop_name }} — {{ title|default:"Home" }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { 
+        theme: { 
+          extend: { 
+            fontFamily: { sans: ['Poppins', 'sans-serif'] },
+            colors: {
+              brand: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                900: '#0c4a6e',
+              }
+            }
+          } 
+        } 
+      }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <style>
+      body { font-family: 'Poppins', sans-serif; }
+    </style>
+  </head>
+  <body class="bg-white text-gray-900 font-sans flex flex-col min-h-screen selection:bg-brand-100 selection:text-brand-900">
+    {# ── Modern Dynamic Top Bar ── #}
+    {% if show_top_bar %}
+    <div class="bg-black text-white py-2.5 px-4 overflow-hidden relative group">
+        <div class="max-w-7xl mx-auto flex items-center justify-between text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
+            {# Left: Address #}
+            <div class="flex items-center">
+                <span class="flex items-center gap-2"><i class="fas fa-location-dot text-brand-500"></i> {{ store_address }}</span>
+            </div>
+            
+            {# Center: Offer #}
+            <div class="hidden lg:flex items-center">
+                <span class="opacity-80">{{ top_bar_offer }}</span>
+            </div>
+
+            {# Right: Contact #}
+            <div class="flex items-center">
+                <a href="tel:{{ support_phone }}" class="hover:text-brand-400 transition-colors">{{ support_phone }}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Premium Glassmorphism Navigation ── #}
+    <header class="sticky top-0 z-50 transition-all duration-500 border-b border-gray-100/50">
+        <div class="absolute inset-0 bg-white/80 backdrop-blur-xl"></div>
+        <div class="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between relative z-10">
+            {# Logo #}
+            <div class="flex-shrink-0">
+                <a href="/" class="flex items-center gap-3 text-lg font-black tracking-tighter group">
+                    {% if logo_url %}
+                        <img src="{{ logo_url }}" alt="{{ shop_name }}" class="h-10 w-auto object-contain">
+                    {% else %}
+                        <span class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-xl group-hover:rotate-[360deg] transition-transform duration-700">{{ logo_text|first }}</span>
+                        {{ logo_text }}
+                    {% endif %}
+                </a>
+            </div>
+
+            {# Main Links - Centered #}
+            <nav class="hidden lg:flex items-center gap-10">
+                <a href="/" class="text-xs font-black uppercase tracking-widest text-black/40 hover:text-black transition-colors relative group">
+                    Home
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-black transition-all group-hover:w-full"></span>
+                </a>
+                {% for label, url in nav_links %}
+                <a href="{{ url }}" class="text-xs font-black uppercase tracking-widest text-black/40 hover:text-black transition-colors relative group">
+                    {{ label }}
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-black transition-all group-hover:w-full"></span>
+                </a>
+                {% endfor %}
+            </nav>
+
+            {# Actions #}
+            <div class="flex items-center gap-6">
+                <form action="/" method="GET" class="hidden xl:flex items-center relative group">
+                    <input type="text" name="q" value="{{ query|default:'' }}" 
+                           placeholder="Search inventory..." 
+                           class="bg-gray-50 border border-gray-100 rounded-2xl py-2.5 px-6 pr-12 text-sm focus:bg-white focus:ring-4 focus:ring-brand-500/10 outline-none w-64 transition-all group-hover:border-gray-200">
+                    <button type="submit" class="absolute right-5 text-gray-400 hover:text-black transition-colors">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+
+                <div class="flex items-center gap-3">
+                    <a href="/cart/" class="w-11 h-11 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-black hover:text-white transition-all duration-300 relative">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">0</span>
+                    </a>
+
+                    {% if request.user.is_authenticated %}
+                        <a href="/accounts/profile/" class="w-11 h-11 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-black hover:text-white transition-all duration-300" title="Dashboard">
+                            <i class="fas fa-user-ninja"></i>
+                        </a>
+                    {% else %}
+                        <a href="/accounts/signin/" class="w-11 h-11 bg-black text-white rounded-2xl flex items-center justify-center hover:bg-brand-600 transition-all duration-300" title="Login">
+                            <i class="fas fa-user-plus"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 mt-8">
+            {% for message in messages %}
+            <div class="p-5 mb-6 text-sm font-bold rounded-2xl shadow-xl animate-bounce {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-600 border border-green-100{% else %}bg-blue-50 text-blue-600 border border-blue-100{% endif %}" role="alert">
+                <i class="fas fa-circle-info mr-3"></i> {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {# ── Sophisticated Dark Footer ── #}
+    <footer class="bg-[#050505] text-white pt-24 pb-12 overflow-hidden relative">
+        <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[120px]"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-16 mb-24">
+                {# Brand Column #}
+                <div class="lg:col-span-2 space-y-8">
+                    <a href="/" class="text-4xl font-black tracking-tighter text-white flex items-center gap-3">
+                        {% if logo_url %}
+                            <img src="{{ logo_url }}" alt="{{ shop_name }}" class="h-12 w-auto object-contain brightness-0 invert">
+                        {% else %}
+                            <span class="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center text-2xl">{{ logo_text|first }}</span>
+                            {{ logo_text }}
+                        {% endif %}
+                    </a>
+                    <p class="text-gray-400 text-lg leading-relaxed max-w-sm">
+                        {{ footer_tagline }}
+                    </p>
+                </div>
+
+                {# Links Columns #}
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-[0.2em] text-brand-500 mb-8">{{ footer_col2_heading }}</h4>
+                    <ul class="space-y-4">
+                        {% for label, url in footer_col2_links %}
+                        <li><a href="{{ url }}" class="text-gray-400 hover:text-white transition-all hover:translate-x-2 inline-block">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-[0.2em] text-brand-500 mb-8">{{ footer_col3_heading }}</h4>
+                    <ul class="space-y-4">
+                        {% for label, url in footer_col3_links %}
+                        <li><a href="{{ url }}" class="text-gray-400 hover:text-white transition-all hover:translate-x-2 inline-block">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-[0.2em] text-brand-500 mb-8">{{ footer_col4_heading }}</h4>
+                    <ul class="space-y-4">
+                        {% for label, url in footer_col4_links %}
+                        <li><a href="{{ url }}" class="text-gray-400 hover:text-white transition-all hover:translate-x-2 inline-block">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-[0.2em] text-brand-500 mb-8">Reach Us</h4>
+                    <ul class="space-y-6">
+                        <li class="flex items-start gap-4 group">
+                            <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-brand-500 transition-colors flex-shrink-0">
+                                <i class="fas fa-location-dot text-xs"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Visit Us</p>
+                                <p class="text-sm font-bold leading-relaxed">{{ store_address }}</p>
+                            </div>
+                        </li>
+                        <li class="flex items-center gap-4 group">
+                            <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-brand-500 transition-colors flex-shrink-0">
+                                <i class="fas fa-phone text-xs"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Call Us</p>
+                                <p class="text-sm font-bold">{{ support_phone }}</p>
+                            </div>
+                        </li>
+                        <li class="flex items-center gap-4 group">
+                            <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-brand-500 transition-colors flex-shrink-0">
+                                <i class="fas fa-envelope text-xs"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Email Us</p>
+                                <p class="text-sm font-bold">{{ support_email }}</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {# Bottom Bar #}
+            <div class="border-t border-white/5 pt-12 flex flex-col md:flex-row items-center justify-between gap-6 text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                <p>© {% now "Y" %} {{ shop_name }}. All rights reserved.</p>
+                <div class="flex gap-8">
+                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                    <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+  </body>
+</html>

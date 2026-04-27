@@ -4,6 +4,11 @@ from django.db import models
 class Category(models.Model):
     external_id = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=255)
+    image_b64 = models.TextField(
+        blank=True,
+        default="",
+        help_text="Raw base64-encoded WebP image (no data: prefix). Synced from the desktop app.",
+    )
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -17,10 +22,16 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=120, blank=True)
-    
-    # Store the actual image file on the Django server
+
+    # Legacy file-based image (kept for backward compat)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
-    
+    # New: base64 WebP stored directly in DB (preferred going forward)
+    image_b64 = models.TextField(
+        blank=True,
+        default="",
+        help_text="Raw base64-encoded WebP image (no data: prefix). Synced from the desktop app.",
+    )
+
     mrp = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     price_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     uom = models.CharField(max_length=32, blank=True, help_text="Unit of measure (e.g. pcs, kg)")

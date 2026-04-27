@@ -1,114 +1,214 @@
 {% extends theme_base_template %}
+{% load static %}
 
 {% block content %}
-<div class="profile-container" style="display: flex; flex-wrap: wrap; gap: 32px; padding: 24px 0;">
-    <!-- Left Column: Profile Edit -->
-    <div class="profile-edit" style="flex: 1; min-width: 300px; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 style="margin-top: 0;">My Profile</h2>
-        <form method="post" action="{% url 'profile' %}">
-            {% csrf_token %}
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                {% for field in form %}
-                    <div class="form-group" style="display: flex; flex-direction: column;">
-                        <label for="{{ field.id_for_label }}" style="font-weight: 500; margin-bottom: 4px;">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div style="color: red; font-size: 14px; margin-top: 4px;">
-                                {{ field.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-                <button type="submit" style="margin-top: 16px; padding: 12px 24px; background: #000; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                    Update Profile
-                </button>
-            </div>
-        </form>
-    </div>
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-10">
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Account Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-500">Manage your profile and view your purchase history.</p>
+        </div>
 
-    <!-- Right Column: History -->
-    <div class="profile-history" style="flex: 2; min-width: 300px;">
-        <!-- Online Orders -->
-        <h2 style="margin-top: 0;">Online Orders</h2>
-        {% if online_orders %}
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px;">
-                {% for order in online_orders %}
-                    <div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: bold;">Order #{{ order.id }}</span>
-                            <span style="padding: 4px 8px; background: #f0f0f0; border-radius: 4px; font-size: 14px;">{{ order.status }}</span>
-                        </div>
-                        <div style="color: #666; font-size: 14px;">
-                            Date: {{ order.created_at|date:"M d, Y" }}
-                        </div>
-                        <div style="margin-top: 8px; font-weight: 500;">
-                            Estimated Total: ₹{{ order.estimated_total }}
-                        </div>
-                        {% if order.expected_delivery_text %}
-                            <div style="margin-top: 6px; color: #666; font-size: 13px;">
-                                Expected arriving: {{ order.expected_delivery_text }}
-                            </div>
-                        {% endif %}
-                        {% if order.delivery_slot_text %}
-                            <div style="margin-top: 4px; color: #333; font-size: 13px;">
-                                Delivery slot: {{ order.delivery_slot_text }}
-                            </div>
-                        {% elif order.delivery_slot_start and order.delivery_slot_end %}
-                            <div style="margin-top: 4px; color: #333; font-size: 13px;">
-                                Delivery slot: {{ order.delivery_slot_start }} - {{ order.delivery_slot_end }}
-                            </div>
-                        {% endif %}
-                        {% if order.delivery_date %}
-                            <div style="margin-top: 4px; color: #333; font-size: 13px;">
-                                Delivery date: {{ order.delivery_date|date:"M d, Y" }}
-                            </div>
-                        {% endif %}
-                        {% if order.status == "OUT_FOR_DELIVERY" %}
-                            <div style="margin-top: 4px; color: #1f7a1f; font-weight: 600; font-size: 13px;">
-                                Out for delivery
-                            </div>
-                        {% endif %}
+        <div class="lg:grid lg:grid-cols-12 lg:gap-x-12">
+            
+            <!-- Left Column: Profile Settings -->
+            <aside class="lg:col-span-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-50 bg-gray-50/50">
+                        <h2 class="text-lg font-bold text-gray-900">Profile Information</h2>
                     </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p style="color: #666; margin-bottom: 48px;">No online orders found.</p>
-        {% endif %}
+                    <div class="p-6">
+                        <form method="post" action="{% url 'profile' %}">
+                            {% csrf_token %}
+                            <div class="space-y-5">
+                                {% for field in form %}
+                                    <div class="space-y-1">
+                                        <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-700">
+                                            {{ field.label }}
+                                        </label>
+                                        <div class="relative">
+                                            {{ field }}
+                                        </div>
+                                        {% if field.errors %}
+                                            <p class="text-xs text-red-500 font-medium mt-1">{{ field.errors.0 }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                
+                                <button type="submit" class="w-full bg-gray-900 text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all shadow-lg shadow-gray-200 mt-4">
+                                    Update Profile
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-        <!-- In-Store Purchases -->
-        <h2 style="margin-top: 0;">In-Store Purchases</h2>
-        {% if retail_txns %}
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                {% for txn in retail_txns %}
-                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid #000;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: bold;">Receipt #{{ txn.desktop_id|slice:":8" }}</span>
-                            <span style="color: {% if txn.payment_status == 'PAID' %}green{% else %}#cc0000{% endif %}; font-weight: bold; font-size: 14px;">
-                                {{ txn.payment_status }}
-                            </span>
-                        </div>
-                        <div style="color: #666; font-size: 14px;">
-                            Date: {{ txn.date|date:"M d, Y" }}
-                        </div>
-                        <div style="margin-top: 8px; font-weight: 500;">
-                            Total Paid: ₹{{ txn.grand_total }}
-                        </div>
-                        {% if txn.items_json %}
-                            <details style="margin-top: 12px; font-size: 14px; cursor: pointer;">
-                                <summary style="color: #666;">View Items</summary>
-                                <ul style="margin-top: 8px; padding-left: 20px;">
-                                    {% for item in txn.items_json %}
-                                        <li>{{ item.productName }} x {{ item.quantity }} = ₹{{ item.totalAmount }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </details>
-                        {% endif %}
+                <!-- Support Card -->
+                <div class="mt-8 bg-brand-600 rounded-2xl p-6 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h3 class="text-lg font-bold mb-2">Need help?</h3>
+                        <p class="text-brand-100 text-sm mb-4">Our support team is available 24/7 at {{ support_phone }} to assist with your orders.</p>
+                        <a href="mailto:{{ support_email }}" class="inline-block bg-white text-brand-600 font-bold text-xs py-2 px-4 rounded-lg hover:bg-brand-50 transition-colors">
+                            Contact Support
+                        </a>
                     </div>
-                {% endfor %}
+                    <i class="fas fa-headset absolute -right-4 -bottom-4 text-8xl text-brand-500/30 rotate-12"></i>
+                </div>
+            </aside>
+
+            <!-- Right Column: Order History -->
+            <div class="mt-12 lg:mt-0 lg:col-span-8">
+                
+                <!-- Online Orders Section -->
+                <section class="mb-12">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                            <i class="fas fa-shopping-bag mr-3 text-brand-500"></i> Online Orders
+                        </h2>
+                        <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">{{ online_orders|length }} Orders</span>
+                    </div>
+
+                    {% if online_orders %}
+                        <div class="space-y-4">
+                            {% for order in online_orders %}
+                                <div class="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                        <div class="flex items-start">
+                                            <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center mr-4 text-gray-400 mt-1">
+                                                <i class="fas fa-box"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-gray-900">Order #{{ order.id }}</h4>
+                                                <p class="text-xs text-gray-500 mb-2">{{ order.created_at|date:"F d, Y" }}</p>
+                                                
+                                                {% if order.expected_delivery_text %}
+                                                    <div class="flex items-center text-[10px] text-brand-600 font-bold uppercase tracking-tight bg-brand-50 px-2 py-0.5 rounded-md w-fit">
+                                                        <i class="fas fa-clock mr-1"></i> Arriving {{ order.expected_delivery_text }}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {% if order.delivery_slot_text or order.delivery_slot_start %}
+                                                    <p class="text-[10px] text-gray-500 mt-1">
+                                                        <i class="fas fa-calendar-alt mr-1"></i> 
+                                                        Slot: {{ order.delivery_slot_text|default:order.delivery_slot_start }}
+                                                    </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col items-end gap-2">
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider 
+                                                {% if order.status == 'PENDING' %}bg-amber-50 text-amber-600 border border-amber-100
+                                                {% elif order.status == 'COMPLETED' %}bg-green-50 text-green-600 border border-green-100
+                                                {% elif order.status == 'OUT_FOR_DELIVERY' %}bg-emerald-50 text-emerald-600 border border-emerald-100
+                                                {% else %}bg-blue-50 text-blue-600 border border-blue-100{% endif %}">
+                                                {{ order.status|title }}
+                                            </span>
+                                            <div class="text-right">
+                                                <p class="text-lg font-black text-gray-900">₹{{ order.estimated_total }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                <i class="fas fa-shopping-cart text-2xl"></i>
+                            </div>
+                            <h3 class="text-gray-900 font-bold">No online orders yet</h3>
+                            <p class="text-gray-500 text-sm mt-1">Start shopping to see your orders here.</p>
+                        </div>
+                    {% endif %}
+                </section>
+
+                <!-- In-Store History Section -->
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                            <i class="fas fa-store mr-3 text-brand-500"></i> In-Store Purchases
+                        </h2>
+                        <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">{{ retail_txns|length }} Transactions</span>
+                    </div>
+
+                    {% if retail_txns %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for txn in retail_txns %}
+                                <div class="bg-white rounded-2xl border border-gray-100 p-6 relative overflow-hidden group">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h4 class="font-bold text-gray-900">Receipt #{{ txn.desktop_id|slice:":8" }}</h4>
+                                            <p class="text-xs text-gray-500">{{ txn.date|date:"M d, Y" }}</p>
+                                        </div>
+                                        <span class="text-xs font-bold {% if txn.payment_status == 'PAID' %}text-green-600{% else %}text-red-500{% endif %}">
+                                            {{ txn.payment_status }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-end">
+                                        <div class="text-2xl font-black text-gray-900">
+                                            <span class="text-xs font-medium text-gray-400 mr-1 italic">₹</span>{{ txn.grand_total }}
+                                        </div>
+                                        
+                                        {% if txn.items_json %}
+                                            <button onclick="document.getElementById('items-{{ forloop.index }}').classList.toggle('hidden')" 
+                                                    class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors">
+                                                View Items <i class="fas fa-chevron-down ml-1 text-[8px]"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if txn.items_json %}
+                                        <div id="items-{{ forloop.index }}" class="hidden mt-4 pt-4 border-t border-gray-50">
+                                            <ul class="space-y-2">
+                                                {% for item in txn.items_json %}
+                                                    <li class="flex justify-between text-xs">
+                                                        <span class="text-gray-600">{{ item.productName }} <span class="text-gray-400">x{{ item.quantity }}</span></span>
+                                                        <span class="font-bold text-gray-900">₹{{ item.totalAmount }}</span>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- Subtle decorative element -->
+                                    <div class="absolute right-0 top-0 w-1 h-full bg-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                <i class="fas fa-receipt text-2xl"></i>
+                            </div>
+                            <h3 class="text-gray-900 font-bold">No in-store purchases</h3>
+                            <p class="text-gray-500 text-sm mt-1">Visit our physical stores to see your retail receipts here.</p>
+                        </div>
+                    {% endif %}
+                </section>
             </div>
-        {% else %}
-            <p style="color: #666;">No in-store purchases found.</p>
-        {% endif %}
+        </div>
     </div>
 </div>
+
+<style>
+    /* Styling Django forms to look like Tailwind inputs */
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select, textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #f9fafb;
+        border: 1px solid #f3f4f6;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        outline: none;
+    }
+    input:focus {
+        background-color: #fff;
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+    }
+</style>
 {% endblock %}

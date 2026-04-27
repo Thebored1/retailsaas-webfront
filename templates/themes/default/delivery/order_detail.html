@@ -1,98 +1,168 @@
 {% extends "themes/default/delivery/base.html" %}
 
 {% block content %}
-  <div class="hero">
-    <h2>Order #{{ order.id }}</h2>
-    <p class="muted">Status: {{ order.status }}</p>
-  </div>
-
-  <div class="detail">
-    <div class="detail-note">
-      <h3>Customer</h3>
-      <p>{{ customer.name|default:"Guest" }}</p>
-      <p class="muted">{{ customer.phone }}</p>
-      <p class="muted">{{ customer.address }}</p>
-      {% if order.delivery_slot_text %}
-        <p class="muted">Slot: {{ order.delivery_slot_text }}</p>
-      {% endif %}
-      {% if order.delivery_date %}
-        <p class="muted">Delivery date: {{ order.delivery_date }}</p>
-      {% endif %}
-    </div>
-    <div class="detail-note">
-      <h3>Items</h3>
-      <ul>
-        {% for item in items %}
-          <li>
-            <div style="display: flex; justify-content: space-between; gap: 12px;">
-              <span>{{ item.name }} x {{ item.qty }}</span>
-              {% if item.line_total %}
-                <span class="muted">INR {{ item.line_total }}</span>
-              {% endif %}
-            </div>
-            {% if item.batch_allocations %}
-              <ul style="margin-top: 6px;">
-                {% for alloc in item.batch_allocations %}
-                  <li class="muted">
-                    Batch {{ alloc.batch_id|default:"N/A" }}: {{ alloc.qty }} x INR {{ alloc.unit_price }}
-                  </li>
-                {% endfor %}
-              </ul>
+<div class="mb-6 flex items-center">
+    <a href="/delivery/" class="text-gray-400 hover:text-brand-600 transition-colors mr-4">
+        <i class="fas fa-arrow-left text-xl"></i>
+    </a>
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">Order #{{ order.id|stringformat:"05d" }}</h2>
+        <p class="text-gray-500 text-[10px] mt-1 uppercase tracking-widest font-bold">
+            {% if order.status == 'DELIVERED' %}
+                <span class="text-green-600">Successfully Delivered</span>
+            {% elif order.status == 'OUT_FOR_DELIVERY' %}
+                <span class="text-blue-600">Out for Delivery</span>
+            {% else %}
+                {{ order.status }}
             {% endif %}
-          </li>
-        {% empty %}
-          <li>No items found.</li>
-        {% endfor %}
-      </ul>
-      <p class="price">
-        Total: INR {{ order.final_total|default:order.estimated_total }}
-      </p>
+        </p>
     </div>
-  </div>
+</div>
 
-  <div class="detail-note" style="margin-top: 24px;">
-    <h3>Complete Delivery</h3>
-    <p class="muted">
-      {% if require_photo %}
-        At least one delivery photo is required to complete this order.
-      {% else %}
-        You may complete this order without a photo.
-      {% endif %}
-    </p>
-    {% if order.status == "OUT_FOR_DELIVERY" %}
-      <form method="post" enctype="multipart/form-data" id="delivery-form">
-        {% csrf_token %}
-        <input type="file" name="photos" accept="image/*" capture="environment" multiple id="delivery-photos" />
-        <div style="margin-top: 12px;">
-          <button class="btn primary" type="submit" id="delivery-submit">Mark Delivered</button>
+<div class="space-y-6 pb-20">
+    <!-- Customer Info Card -->
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="flex items-center mb-4">
+            <div class="w-10 h-10 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mr-3">
+                <i class="fas fa-user"></i>
+            </div>
+            <h3 class="font-bold text-gray-900">Customer Details</h3>
         </div>
-      </form>
-    {% else %}
-      <p class="muted">This order has already been completed.</p>
-    {% endif %}
-  </div>
-
-  {% if photos %}
-    <div class="detail-note" style="margin-top: 24px;">
-      <h3>Delivery Photos</h3>
-      <ul>
-        {% for photo in photos %}
-          <li>
-            <a href="{{ photo.image.url }}" target="_blank">Photo {{ forloop.counter }}</a>
-            <span class="muted">({{ photo.uploaded_at }})</span>
-          </li>
-        {% endfor %}
-      </ul>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold block mb-1">Name</span>
+                    <p class="text-gray-700 font-semibold">{{ customer.name|default:"Guest Customer" }}</p>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold block mb-1">Phone</span>
+                    {% if customer.phone %}
+                        <a href="tel:{{ customer.phone }}" class="text-brand-600 font-bold flex items-center">
+                            <i class="fas fa-phone-alt mr-2 text-xs"></i>{{ customer.phone }}
+                        </a>
+                    {% else %}
+                        <p class="text-gray-400 text-sm italic">Not provided</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <span class="text-[10px] text-gray-400 uppercase font-bold block mb-1">Delivery Address</span>
+                <p class="text-gray-700 font-medium leading-relaxed">{{ customer.address|default:"No address provided" }}</p>
+                {% if customer.address %}
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ customer.address|urlencode }}" target="_blank" class="inline-flex items-center text-[10px] font-bold text-brand-600 uppercase tracking-wider mt-2 hover:underline">
+                        <i class="fas fa-location-dot mr-1"></i> Open in Maps
+                    </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  {% endif %}
 
-  <script>
+    <!-- Items Card -->
+    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-gray-50 flex items-center">
+            <div class="w-10 h-10 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mr-3">
+                <i class="fas fa-box"></i>
+            </div>
+            <h3 class="font-bold text-gray-900">Order Items</h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for item in items %}
+            <div class="p-4 bg-white">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-gray-800">{{ item.name }}</p>
+                        <p class="text-xs text-gray-400 mt-1 uppercase tracking-wider">Qty: {{ item.qty }}</p>
+                    </div>
+                    {% if item.line_total %}
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-gray-900">Rs. {{ item.line_total }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if item.batch_allocations %}
+                <div class="mt-2 bg-gray-50 rounded-lg p-2 space-y-1">
+                    {% for alloc in item.batch_allocations %}
+                    <div class="flex justify-between text-[10px] text-gray-500 font-medium uppercase tracking-tight">
+                        <span>Batch {{ alloc.batch_id|default:"N/A" }}</span>
+                        <span>{{ alloc.qty }} units</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="bg-gray-50 p-6 flex justify-between items-center border-t border-gray-100">
+            <span class="text-sm font-bold text-gray-900 uppercase tracking-wider">Total Amount</span>
+            <span class="text-2xl font-extrabold text-brand-600">Rs. {{ order.final_total|default:order.estimated_total }}</span>
+        </div>
+    </div>
+
+    <!-- Proof of Delivery Card -->
+    {% if photos %}
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <h3 class="font-bold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-images mr-2 text-brand-500"></i> Proof of Delivery
+        </h3>
+        <div class="grid grid-cols-3 gap-2">
+            {% for photo in photos %}
+            <a href="{{ photo.image.url }}" target="_blank" class="aspect-square rounded-lg overflow-hidden border border-gray-100 bg-gray-50 hover:opacity-80 transition-opacity">
+                <img src="{{ photo.image.url }}" class="w-full h-full object-cover">
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Section -->
+    {% if order.status == 'OUT_FOR_DELIVERY' %}
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-gray-100 lg:relative lg:bg-transparent lg:border-none lg:p-0">
+        <div class="max-w-3xl mx-auto">
+            <form method="post" enctype="multipart/form-data" id="delivery-form" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="bg-white rounded-2xl border-2 border-dashed border-brand-200 p-6 text-center hover:border-brand-500 transition-colors cursor-pointer relative" id="photo-upload-zone">
+                    <input type="file" name="photos" id="delivery-photos" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" capture="environment" multiple {% if require_photo %}required{% endif %}>
+                    <div class="space-y-2" id="upload-placeholder">
+                        <i class="fas fa-camera text-3xl text-brand-400"></i>
+                        <p class="text-sm font-bold text-brand-600">Take Delivery Photo{% if not require_photo %} (Optional){% endif %}</p>
+                        <p class="text-xs text-gray-400">Upload proofs to complete delivery</p>
+                    </div>
+                    <div class="hidden space-y-2" id="upload-preview">
+                        <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                        <p class="text-sm font-bold text-green-600">Photos Ready!</p>
+                        <p class="text-xs text-gray-400" id="filename-display"></p>
+                    </div>
+                </div>
+
+                <button type="submit" id="delivery-submit" class="w-full bg-brand-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-brand-700 active:scale-[0.98] transition-all flex items-center justify-center">
+                    <i class="fas fa-check-circle mr-2 text-xl"></i> Complete Delivery
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
     (function () {
       const form = document.getElementById('delivery-form');
       const input = document.getElementById('delivery-photos');
+      const placeholder = document.getElementById('upload-placeholder');
+      const preview = document.getElementById('upload-preview');
+      const filenameDisplay = document.getElementById('filename-display');
+
       if (!form || !input) return;
 
-      const MAX_KB = 200;
+      input.addEventListener('change', function(e) {
+          if (e.target.files.length > 0) {
+              placeholder.classList.add('hidden');
+              preview.classList.remove('hidden');
+              filenameDisplay.innerText = e.target.files.length + ' photo(s) selected';
+          }
+      });
+
+      const MAX_KB = 500;
       const MAX_BYTES = MAX_KB * 1024;
 
       function fileToImage(file) {
@@ -144,6 +214,11 @@
 
       form.addEventListener('submit', async (e) => {
         if (!input.files || input.files.length === 0) return;
+        
+        const submitBtn = document.getElementById('delivery-submit');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Compressing...';
+
         e.preventDefault();
         const files = Array.from(input.files);
         const compressed = [];
@@ -153,8 +228,10 @@
         const dt = new DataTransfer();
         for (const f of compressed) dt.items.add(f);
         input.files = dt.files;
+        
+        submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Saving...';
         form.submit();
       });
     })();
-  </script>
+</script>
 {% endblock %}

@@ -1,0 +1,139 @@
+{% extends theme_base_template %}
+{% load static %}
+
+{% block title %}Order #{{ order.id|stringformat:"06d" }}{% endblock %}
+
+{% block content %}
+    <div class="bg-gray-900 py-12">
+        <div class="container-max mx-auto px-4">
+            <a href="{% url 'delivery_orders' %}" class="text-indigo-400 font-bold hover:text-indigo-300 transition-colors flex items-center gap-2 mb-4">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h1 class="text-3xl font-extrabold text-white">Order #{{ order.id|stringformat:"06d" }}</h1>
+        </div>
+    </div>
+
+    <div class="container-max mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- LEFT: Order Details -->
+            <div class="lg:col-span-7 space-y-8">
+                <!-- Items -->
+                <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Package Contents</h2>
+                    <div class="divide-y divide-gray-100">
+                        {% for item in items %}
+                        <div class="py-4 flex justify-between items-center">
+                            <div class="flex gap-4">
+                                <span class="bg-indigo-50 text-indigo-600 font-bold w-8 h-8 flex items-center justify-center rounded-sm text-sm">{{ item.qty }}x</span>
+                                <span class="font-bold text-gray-900">{{ item.name }}</span>
+                            </div>
+                            <span class="text-gray-500 font-medium">₹{{ item.line_total }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-8 pt-8 border-t-2 border-dashed border-gray-100 flex justify-between items-end">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total to Collect</span>
+                        <span class="text-3xl font-extrabold text-indigo-600">₹{{ order.estimated_total }}</span>
+                    </div>
+                </div>
+
+                <!-- Customer info -->
+                <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Customer Details</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Name</p>
+                            <p class="font-bold text-gray-900">{{ customer.name|default:"Guest Customer" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Phone</p>
+                            <a href="tel:{{ customer.phone }}" class="font-bold text-indigo-600 hover:underline">{{ customer.phone|default:"N/A" }}</a>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Delivery Address</p>
+                            <p class="font-bold text-gray-900 leading-relaxed">{{ customer.address|default:order.expected_delivery_text }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Actions -->
+            <div class="lg:col-span-5 space-y-8">
+                <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-8 sticky top-28">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Delivery Status</h2>
+                    
+                    {% if order.status == 'DELIVERED' %}
+                        <div class="p-6 bg-green-50 rounded-sm border border-green-100 text-center">
+                            <div class="w-12 h-12 bg-green-100 text-green-600 flex items-center justify-center rounded-full mx-auto mb-4 text-xl">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <p class="font-bold text-green-700">Delivered Successfully</p>
+                            <p class="text-xs text-green-600 mt-1">{{ order.delivered_at|date:"M d, Y | h:i A" }}</p>
+                        </div>
+                    {% else %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="mb-6 p-4 rounded-sm text-sm font-bold {% if message.tags == 'success' %}bg-green-50 text-green-600{% else %}bg-red-50 text-red-600{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post" enctype="multipart/form-data" class="space-y-6">
+                            {% csrf_token %}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Delivery Proof (Photos)</label>
+                                <div class="relative border-2 border-dashed border-gray-100 rounded-sm p-8 text-center hover:border-indigo-600 transition-all group">
+                                    <input type="file" name="photos" multiple {% if require_photo %}required{% endif %}
+                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="updateFileList(this)">
+                                    <div class="text-indigo-600 mb-2 text-2xl group-hover:scale-110 transition-transform">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <p class="text-sm font-bold text-gray-900">Upload Photos</p>
+                                    <p id="file-count" class="text-xs text-gray-400 mt-1">{% if require_photo %}At least 1 photo required{% else %}Optional{% endif %}</p>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-green-600 text-white px-8 py-4 rounded-sm font-bold text-lg shadow-lg hover:bg-green-700 hover:-translate-y-0.5 transition-all active:translate-y-0">
+                                Mark as Delivered
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if photos %}
+                    <div class="mt-10 pt-10 border-t border-gray-100">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Proof Photos</h3>
+                        <div class="grid grid-cols-3 gap-2">
+                            {% for photo in photos %}
+                            <a href="{{ photo.image.url }}" target="_blank" class="aspect-square rounded-sm overflow-hidden border border-gray-100">
+                                <img src="{{ photo.image.url }}" class="w-full h-full object-cover">
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateFileList(input) {
+        const count = input.files.length;
+        const text = document.getElementById('file-count');
+        if (count > 0) {
+            text.innerText = count + ' file(s) selected';
+            text.classList.remove('text-gray-400');
+            text.classList.add('text-indigo-600', 'font-bold');
+        } else {
+            text.innerText = '{% if require_photo %}At least 1 photo required{% else %}Optional{% endif %}';
+            text.classList.add('text-gray-400');
+            text.classList.remove('text-indigo-600', 'font-bold');
+        }
+    }
+</script>
+{% endblock %}

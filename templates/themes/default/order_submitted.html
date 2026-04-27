@@ -1,35 +1,82 @@
-{% extends "themes/default/base.html" %}
+{% extends theme_base_template %}
+{% load static %}
 
 {% block content %}
-<section class="order-status">
-  <h2>Order Submitted</h2>
-  <p>Your order #{{ order.id }} is pending store approval.</p>
-  <p>Total: Rs.{{ order.estimated_total }}</p>
+<section class="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-xl w-full text-center">
+        
+        <!-- Success Icon -->
+        <div class="mb-8 relative inline-block">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto relative z-10">
+                <i class="fas fa-check text-4xl text-green-600"></i>
+            </div>
+            <div class="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-25"></div>
+        </div>
 
-  {% if items %}
-    <h3>Order Breakdown</h3>
-    <ul class="summary-list">
-      {% for item in items %}
-        <li>
-          {{ item.product_name }} × {{ item.qty }} — Rs.{{ item.line_total }}
-          {% if item.batch_allocations %}
-            <ul class="muted">
-              {% for alloc in item.batch_allocations %}
-                <li>
-                  {% if alloc.batch_id %}
-                    Batch price Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
-                  {% else %}
-                    Backorder price Rs.{{ alloc.unit_price }} × {{ alloc.qty }}
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  <a class="btn" href="/">Back to products</a>
+        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-3">Order Submitted!</h1>
+        <p class="text-gray-500 text-lg mb-10">Thank you for your purchase. Your order <span class="font-bold text-gray-900">#{{ order.id }}</span> is being processed.</p>
+        
+        <!-- Order Card -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-gray-200 border border-gray-100 overflow-hidden text-left mb-10">
+            <div class="p-6 sm:p-8 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Order Summary</h3>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ items|length }} Items</span>
+            </div>
+            
+            <div class="p-6 sm:p-8 space-y-6">
+                {% if items %}
+                    <div class="divide-y divide-gray-50">
+                        {% for item in items %}
+                            <div class="py-4 first:pt-0 last:pb-0 flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-bold text-gray-900">{{ item.product_name }}</p>
+                                    <p class="text-xs text-gray-500">Quantity: {{ item.qty }}</p>
+                                    
+                                    {% if item.batch_allocations %}
+                                        <div class="mt-2 space-y-1">
+                                            {% for alloc in item.batch_allocations %}
+                                                <p class="text-[10px] text-gray-400 flex items-center">
+                                                    <i class="fas fa-barcode mr-1.5 opacity-50"></i>
+                                                    {% if alloc.batch_id %}
+                                                        Batch â‚¹{{ alloc.unit_price }} Ã— {{ alloc.qty }}
+                                                    {% else %}
+                                                        Backorder â‚¹{{ alloc.unit_price }} Ã— {{ alloc.qty }}
+                                                    {% endif %}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <span class="text-sm font-black text-gray-900">â‚¹{{ item.line_total }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="pt-6 border-t-2 border-dashed border-gray-100 flex justify-between items-center">
+                    <span class="text-base font-bold text-gray-500">Total Amount Paid</span>
+                    <span class="text-2xl font-black text-brand-600">â‚¹{{ order.estimated_total }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="/" class="w-full sm:w-auto bg-gray-900 text-white font-bold py-4 px-10 rounded-2xl hover:bg-gray-800 transition-all shadow-lg shadow-gray-200">
+                Continue Shopping
+            </a>
+            <a href="{% url 'profile' %}" class="w-full sm:w-auto bg-white text-gray-700 font-bold py-4 px-10 rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all">
+                Track My Order
+            </a>
+        </div>
+        
+        <div class="mt-10 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 inline-flex items-center text-left">
+            <i class="fas fa-info-circle text-blue-500 mr-3 text-lg"></i>
+            <p class="text-[11px] text-blue-700 font-medium leading-relaxed">
+                We've sent a confirmation email to your registered address.<br>
+                Our team will notify you once the store approves and ships your items.
+            </p>
+        </div>
+    </div>
 </section>
 {% endblock %}

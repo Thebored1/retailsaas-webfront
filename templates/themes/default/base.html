@@ -1,42 +1,252 @@
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ shop_name }} Store</title>
-    <link rel="stylesheet" href="{% static theme_css_path %}" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="brand">
-        <span class="logo">{{ shop_name|slice:":1" }}</span>
-        <div>
-          <h1>{{ shop_name }}</h1>
-          <p>Online ordering, pending confirmation</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ shop_name }} | Premium E-Commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Top Bar -->
+    {% if show_top_bar %}
+    <div class="bg-brand-900 text-white py-2 text-[10px] sm:text-xs font-medium border-b border-brand-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
+            <!-- Left: Address -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center">
+                    <i class="fas fa-location-dot mr-1.5 text-brand-400"></i>
+                    <span>{{ store_address }}</span>
+                </div>
+            </div>
+
+            <!-- Center: Offer -->
+            <div class="flex-1 flex justify-center">
+                <div class="bg-brand-800/50 px-3 py-0.5 rounded-full border border-brand-700/50 flex items-center">
+                    <span class="inline-block w-1.5 h-1.5 bg-brand-400 rounded-full mr-2 animate-pulse"></span>
+                    <span class="tracking-wide uppercase text-[9px] font-bold mr-2 text-brand-300">Offer:</span>
+                    <span class="text-white">{{ top_bar_offer }}</span>
+                </div>
+            </div>
+
+            <!-- Right: Contact -->
+            <div class="flex items-center space-x-4">
+                <a href="tel:{{ support_phone }}" class="hover:text-brand-300 transition-colors flex items-center">
+                    <i class="fas fa-phone mr-1.5 text-brand-400"></i> {{ support_phone }}
+                </a>
+                <span class="text-brand-800 hidden sm:inline">|</span>
+                <a href="mailto:{{ support_email }}" class="hover:text-brand-300 transition-colors flex items-center">
+                    <i class="fas fa-envelope mr-1.5 text-brand-400"></i> Email Us
+                </a>
+            </div>
         </div>
-      </div>
-      <nav>
-        <a href="/">Products</a>
-        <a href="/cart/">Cart</a>
-        {% if request.user.is_authenticated %}
-          <a href="/accounts/profile/">Profile</a>
-          <a href="/accounts/signout/">Sign Out</a>
-        {% else %}
-          <a href="/accounts/signin/">Sign In</a>
+    </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-gray-900 tracking-tighter">
+                        {% if logo_url %}
+                            <img src="{{ logo_url }}" alt="{{ shop_name }}" class="h-10 w-auto object-contain">
+                        {% else %}
+                            {{ logo_text }}
+                        {% endif %}
+                    </a>
+                </div>
+
+                <!-- Links (Desktop) -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Products</a>
+                    {% for label, url in nav_links %}
+                        <a href="{{ url }}" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">{{ label }}</a>
+                    {% endfor %}
+                </div>
+
+                <!-- Search & Actions -->
+                <div class="flex items-center space-x-4">
+                    <form action="/" method="GET" class="hidden sm:flex items-center relative">
+                        <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search..." class="bg-gray-100 border border-transparent rounded-full py-1.5 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none w-48 transition-all">
+                        <button type="submit" class="absolute right-3 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+
+                    <a href="/cart/" class="text-gray-500 hover:text-gray-900 relative">
+                        <i class="fas fa-shopping-bag text-xl"></i>
+                    </a>
+
+                    {% if request.user.is_authenticated %}
+                        <a href="/accounts/profile/" class="text-gray-500 hover:text-gray-900" title="Profile">
+                            <i class="fas fa-user text-xl"></i>
+                        </a>
+                        <a href="/accounts/signout/" class="text-gray-500 hover:text-gray-900" title="Sign Out">
+                            <i class="fas fa-sign-out-alt text-xl"></i>
+                        </a>
+                    {% else %}
+                        <a href="/accounts/signin/" class="text-gray-500 hover:text-gray-900" title="Sign In">
+                            <i class="fas fa-user text-xl"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mobile Search -->
+            <form action="/" method="GET" class="sm:hidden pb-3 px-2">
+                <div class="relative">
+                    <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search products..." class="bg-gray-100 w-full rounded-md py-2 px-4 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    <button type="submit" class="absolute right-3 top-2.5 text-gray-400">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+            <div class="p-4 mb-4 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
         {% endif %}
-      </nav>
-    </header>
-    <main class="container">
-      {% if messages %}
-        <ul class="messages">
-          {% for message in messages %}
-            <li class="message {{ message.tags }}">{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-      {% block content %}{% endblock %}
+
+        {% block content %}{% endblock %}
     </main>
-    <footer class="site-footer"></footer>
-  </body>
+
+    <!-- Site Benefits (Above Footer) -->
+    {% if show_benefits %}
+    <section class="py-16 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="{{ benefit_1_icon }} text-xl"></i>
+                    </div>
+                    <h4 class="text-base font-bold text-gray-900 mb-1">{{ benefit_1_title }}</h4>
+                    <p class="text-xs text-gray-500">{{ benefit_1_subtext }}</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="{{ benefit_2_icon }} text-xl"></i>
+                    </div>
+                    <h4 class="text-base font-bold text-gray-900 mb-1">{{ benefit_2_title }}</h4>
+                    <p class="text-xs text-gray-500">{{ benefit_2_subtext }}</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="{{ benefit_3_icon }} text-xl"></i>
+                    </div>
+                    <h4 class="text-base font-bold text-gray-900 mb-1">{{ benefit_3_title }}</h4>
+                    <p class="text-xs text-gray-500">{{ benefit_3_subtext }}</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="{{ benefit_4_icon }} text-xl"></i>
+                    </div>
+                    <h4 class="text-base font-bold text-gray-900 mb-1">{{ benefit_4_title }}</h4>
+                    <p class="text-xs text-gray-500">{{ benefit_4_subtext }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <!-- Brand Column -->
+                <div class="col-span-1 md:col-span-1">
+                    <span class="text-2xl font-bold tracking-tighter block mb-4">{{ logo_text }}</span>
+                    <p class="text-gray-400 text-sm mb-6">{{ footer_tagline }}</p>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start">
+                            <i class="fas fa-location-dot mt-1 mr-3 text-brand-500"></i>
+                            <p class="text-gray-400 text-xs leading-relaxed">{{ store_address }}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-phone mr-3 text-brand-500"></i>
+                            <a href="tel:{{ support_phone }}" class="text-gray-400 text-xs hover:text-white transition-colors">{{ support_phone }}</a>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope mr-3 text-brand-500"></i>
+                            <a href="mailto:{{ support_email }}" class="text-gray-400 text-xs hover:text-white transition-colors">{{ support_email }}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2 -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-200">{{ footer_col2_heading }}</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        {% for label, url in footer_col2_links %}
+                        <li><a href="{{ url }}" class="hover:text-white transition-colors">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Column 3 -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-200">{{ footer_col3_heading }}</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        {% for label, url in footer_col3_links %}
+                        <li><a href="{{ url }}" class="hover:text-white transition-colors">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Column 4 -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-200">{{ footer_col4_heading }}</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        {% for label, url in footer_col4_links %}
+                        <li><a href="{{ url }}" class="hover:text-white transition-colors">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                <p>&copy; {% now "Y" %} {{ shop_name }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
 </html>

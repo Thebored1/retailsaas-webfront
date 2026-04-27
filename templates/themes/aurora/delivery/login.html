@@ -1,0 +1,35 @@
+{% extends "themes/aurora/delivery/base.html" %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+    <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-10 md:p-12 w-full max-w-md">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">Agent Login</h1>
+            <p class="text-gray-500 mt-2 font-medium">Enter your credentials to manage deliveries</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-600 font-bold">
+                    {{ form.non_field_errors.0 }}
+                </div>
+            {% endif %}
+
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Username</label>
+                <input type="text" name="username" required class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold">
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Password</label>
+                <input type="password" name="password" required class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold">
+            </div>
+
+            <button type="submit" class="w-full py-5 bg-black text-white font-extrabold rounded-2xl hover:bg-brand-600 transition-all shadow-xl hover:scale-[1.02] mt-4">
+                Sign In
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends theme_base_template %}
+{% load static catalog_extras %}
+
+{% block title %}{% if query %}Search: {{ query }}{% else %}All Products{% endif %}{% endblock %}
+
+{% block content %}
+    <!-- BREADCRUMB / PAGE TITLE -->
+    <div class="bg-white border-b border-gray-100">
+      <div class="container-max mx-auto px-4 py-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-extrabold text-gray-900">
+              {% if query %}
+                Results for "{{ query }}"
+              {% elif current_category %}
+                {% for cat in categories %}{% if cat.id == current_category %}{{ cat.name }}{% endif %}{% endfor %}
+              {% else %}
+                All Products
+              {% endif %}
+          </h1>
+          <p class="mt-2 text-gray-500 font-medium">{{ products|length }} items found</p>
+        </div>
+        
+        <form method="get" class="flex items-center gap-3">
+          {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+          {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+          
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Sort by:</label>
+          <select name="sort" onchange="this.form.submit()" class="border-2 border-gray-100 rounded-sm px-4 py-2 text-sm font-bold focus:outline-none focus:border-indigo-600 transition-all bg-white">
+            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+            <option value="price_low_high" {% if current_sort == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_high_low" {% if current_sort == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+            <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name: A-Z</option>
+          </select>
+        </form>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT: FILTERS + GRID -->
+    <div class="container-max mx-auto px-4 py-12">
+      <div class="flex flex-col lg:flex-row gap-12">
+        <!-- SIDEBAR FILTERS -->
+        <aside class="w-full lg:w-64 shrink-0">
+          <form method="get" class="space-y-8 sticky top-28">
+            {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+            
+            <div class="bg-white rounded-sm shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center justify-between">
+                    Filters
+                    <a href="?" class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:underline">Clear All</a>
+                </h2>
+                
+                <!-- Category Filter -->
+                <div class="mb-8">
+                  <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Categories</h3>
+                  <div class="space-y-3">
+                    <label class="flex items-center gap-3 group cursor-pointer">
+                        <input type="radio" name="category" value="" {% if not current_category %}checked{% endif %} class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" onchange="this.form.submit()">
+                        <span class="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">All Categories</span>
+                    </label>
+                    {% for cat in categories %}
+                    <label class="flex items-center gap-3 group cursor-pointer">
+                        <input type="radio" name="category" value="{{ cat.id }}" {% if current_category == cat.id %}checked{% endif %} class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" onchange="this.form.submit()">
+                        <span class="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">{{ cat.name }}</span>
+                    </label>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="mb-8 pt-8 border-t border-gray-100">
+                  <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Price Range</h3>
+                  <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Min</label>
+                            <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="₹0" class="w-full border-2 border-gray-50 rounded-sm px-2 py-1.5 text-sm focus:border-indigo-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Max</label>
+                            <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="₹10k+" class="w-full border-2 border-gray-50 rounded-sm px-2 py-1.5 text-sm focus:border-indigo-600 focus:outline-none">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md">Apply Price</button>
+                  </div>
+                </div>
+
+                <!-- Promotion Box -->
+                {% if show_sidebar_promo %}
+                <div class="mt-8 p-6 bg-indigo-900 rounded-sm text-white relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-20 text-6xl">
+                        <i class="{{ sidebar_promo_icon }}"></i>
+                    </div>
+                    <h4 class="font-bold text-lg leading-tight relative z-10">{{ sidebar_promo_title }}</h4>
+                    <p class="mt-2 text-indigo-200 text-xs relative z-10">{{ sidebar_promo_body }}</p>
+                </div>
+                {% endif %}
+            </div>
+          </form>
+        </aside>
+
+        <!-- PRODUCT GRID -->
+        <main class="flex-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for product in products %}
+            <article class="bg-white rounded-sm shadow-sm border border-gray-100 flex flex-col group hover:shadow-xl transition-all duration-300">
+              <div class="bg-gray-50 rounded-sm overflow-hidden aspect-square relative">
+                <a href="{% url 'product_detail' product.id %}" class="block w-full h-full">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold uppercase">No Image</div>
+                    {% endif %}
+                </a>
+                {% if product.price_estimate > fifo_price_map|get_item:product.id %}
+                    <span class="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-sm shadow-lg">SALE</span>
+                {% endif %}
+              </div>
+              <div class="p-6 flex-1 flex flex-col">
+                <div class="flex items-start justify-between gap-4">
+                  <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                      <a href="{% url 'product_detail' product.id %}">{{ product.name }}</a>
+                  </h3>
+                </div>
+                <p class="mt-2 text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ product.description }}</p>
+                
+                <div class="mt-auto pt-6 flex items-center justify-between border-t border-gray-50">
+                  <div class="flex flex-col">
+                    <span class="text-xl font-extrabold text-gray-900">₹{{ fifo_price_map|get_item:product.id|default:product.price_estimate }}</span>
+                    {% with price=fifo_price_map|get_item:product.id %}
+                        {% if price < product.price_estimate %}
+                            <span class="text-xs text-gray-400 line-through">₹{{ product.price_estimate }}</span>
+                        {% endif %}
+                    {% endwith %}
+                  </div>
+                  <form action="{% url 'add_to_cart' product.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-indigo-600 text-white w-10 h-10 flex items-center justify-center rounded-sm shadow-md hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:translate-y-0" title="Add to Cart">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 100-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                        </svg>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+
+          {% if not products %}
+            <div class="py-24 text-center">
+                <div class="w-20 h-20 bg-gray-50 text-gray-300 flex items-center justify-center rounded-full mx-auto mb-6 text-3xl">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">No matches found</h2>
+                <p class="text-gray-500 mt-2">Try adjusting your filters or search terms.</p>
+                <a href="?" class="mt-8 inline-block bg-indigo-600 text-white px-8 py-3 rounded-sm font-bold shadow-lg hover:bg-indigo-700 transition-all">Clear All Filters</a>
+            </div>
+          {% endif %}
+        </main>
+      </div>
+    </div>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

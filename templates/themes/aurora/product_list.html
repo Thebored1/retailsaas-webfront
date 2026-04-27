@@ -1,0 +1,375 @@
+{% extends "themes/aurora/base.html" %}
+{% load catalog_extras %}
+{% load static %}
+
+{% block content %}
+
+{# ── HOMEPAGE SECTIONS — Only shown when not filtering ── #}
+{% if not is_filtering %}
+
+{# ── Section 1: Hero Carousel ──────────────────────────────────────────────── #}
+<section id="hero" class="relative overflow-hidden h-96 md:h-[520px] w-full bg-gray-100">
+    <div class="hero-swiper swiper h-full">
+        <div class="swiper-wrapper">
+            {% if hero_slides %}
+                {% for slide in hero_slides %}
+                <div class="swiper-slide relative bg-center bg-cover" style="background-image: url('{% if slide.image %}{{ slide.image.url }}{% else %}https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?auto=format&fit=crop&w=1400&q=60{% endif %}');">
+                    <div class="absolute inset-0 bg-black/40"></div>
+                    <div class="absolute inset-0">
+                        <div class="max-w-7xl mx-auto px-4 h-full flex items-center">
+                            <div class="text-white">
+                                <h4 class="text-sm md:text-lg uppercase tracking-wide font-semibold drop-shadow-md">{{ slide.tagline }}</h4>
+                                <h2 class="mt-1 text-3xl md:text-5xl font-extrabold drop-shadow-md">{{ slide.highlight }}</h2>
+                                <p class="mt-2 md:mt-4 max-w-md text-base md:text-lg drop-shadow-sm">{{ slide.subtext }}</p>
+                                <a href="{{ slide.button_url }}" class="inline-block mt-6 px-8 py-3 bg-white text-black font-bold rounded hover:bg-gray-100 transition-colors shadow-lg">
+                                    {{ slide.button_label }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {# Swiper Pagination #}
+        <div class="swiper-pagination !bottom-8"></div>
+    </div>
+</section>
+
+{# ── Section: New Arrivals Carousel ──────────────────────────────────────── #}
+<section id="new-arrivals" class="py-24 bg-white overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center justify-between mb-12">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">New Arrivals</h2>
+                <p class="text-gray-500 mt-3 text-lg">Fresh styles just landed in our shop.</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="document.getElementById('new-arrivals-carousel').scrollBy({left: -400, behavior: 'smooth'})" class="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center shadow-sm hover:bg-black hover:text-white transition-all duration-500 hover:scale-110">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button onclick="document.getElementById('new-arrivals-carousel').scrollBy({left: 400, behavior: 'smooth'})" class="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center shadow-sm hover:bg-black hover:text-white transition-all duration-500 hover:scale-110">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="new-arrivals-carousel" class="flex gap-10 overflow-x-auto pb-10 snap-x no-scrollbar scroll-smooth">
+            {% for product in featured_products %}
+            <div class="min-w-[300px] md:min-w-[350px] snap-start group">
+                <a href="/products/{{ product.id }}/" class="block">
+                    <div class="aspect-[3/4] rounded-[3rem] overflow-hidden bg-gray-50 mb-8 relative shadow-sm group-hover:shadow-2xl transition-all duration-500">
+                        {% if product.image_b64 %}
+                            <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
+                        {% elif product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-200">
+                                <i class="fas fa-image text-6xl"></i>
+                            </div>
+                        {% endif %}
+                        
+                        {# Badge #}
+                        <div class="absolute top-8 left-8 bg-white/90 backdrop-blur-md text-black text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-widest shadow-lg">New Arrival</div>
+                    </div>
+                    
+                    <div class="px-4">
+                        <p class="text-[10px] font-black text-brand-600 uppercase tracking-widest mb-2">{{ product.category.name|default:"Collection" }}</p>
+                        <h3 class="font-bold text-gray-900 text-xl group-hover:text-brand-600 transition-colors truncate">{{ product.name }}</h3>
+                        <p class="text-gray-900 font-black text-2xl mt-2">Rs.{{ featured_price_map|dict_get:product.id|default:product.price_estimate }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+            <div class="min-w-[1px] h-1"></div>
+        </div>
+    </div>
+</section>
+
+{# ── Section 2: Promo Banner ──────────────────────────────────────────────── #}
+<section id="promo" class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 items-center gap-12">
+        <div>
+            <span class="inline-block bg-brand-100 text-brand-800 text-xs font-bold px-3 py-1 rounded-full tracking-wide uppercase">{{ promo_badge }}</span>
+            <h2 class="mt-4 text-3xl md:text-4xl font-extrabold text-gray-900">{{ promo_title }}</h2>
+            <p class="mt-4 text-gray-600 text-lg leading-relaxed">{{ promo_body }}</p>
+            <a href="#product-grid" class="inline-block mt-8 px-8 py-3 bg-black text-white font-bold rounded hover:bg-gray-800 transition-transform hover:scale-105">
+                {{ promo_button_label }}
+            </a>
+        </div>
+        <div class="flex justify-center">
+            {% if promo_image %}
+                <img src="{{ promo_image.url }}" alt="Promo" class="w-full h-80 md:h-96 object-cover rounded-2xl shadow-2xl"/>
+            {% else %}
+                <img src="https://images.unsplash.com/photo-1524808645366-3b1e4a1e9f9a?auto=format&fit=crop&w=1200&q=60" alt="Promo" class="w-full h-80 md:h-96 object-cover rounded-2xl shadow-2xl"/>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+
+{# ── Section 4: Newsletter ──────────────────────────────────────────────── #}
+{% if show_newsletter %}
+<section id="newsletter" class="py-20 bg-black text-white overflow-hidden relative">
+    <div class="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-brand-600 rounded-full blur-3xl opacity-20"></div>
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 items-center gap-12 relative z-10">
+        <div>
+            <h3 class="text-3xl font-bold">{{ newsletter_title }}</h3>
+            <p class="mt-4 text-gray-400 text-lg">{{ newsletter_body }}</p>
+        </div>
+        <form class="flex flex-col sm:flex-row items-center gap-4">
+            <input type="email" required placeholder="Enter your email" class="flex-1 w-full bg-gray-900 border border-gray-800 rounded-lg px-6 py-4 text-white focus:border-brand-500 outline-none transition-colors" />
+            <button class="w-full sm:w-auto px-10 py-4 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 transition-colors shadow-lg">
+                Subscribe
+            </button>
+        </form>
+    </div>
+</section>
+{% endif %}
+
+{# ── Section 5: Categories Grid ─────────────────────────────────────────── #}
+{% if categories %}
+<section id="categories" class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 text-center mb-12">
+        <h3 class="text-3xl font-bold">Shop by Category</h3>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+        {% for cat in categories %}
+        <a href="/?category={{ cat.id }}" class="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 block aspect-square">
+            {% if cat.image_b64 %}
+                <img src="data:image/webp;base64,{{ cat.image_b64 }}" alt="{{ cat.name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+            {% elif cat.image %}
+                <img src="{{ cat.image.url }}" alt="{{ cat.name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+            {% else %}
+                <div class="absolute inset-0 bg-brand-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
+                    <i class="fas fa-box-open text-6xl text-brand-200"></i>
+                </div>
+            {% endif %}
+            
+            {# Centered overlay #}
+            <div class="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors duration-500 flex items-center justify-center p-6">
+                <h4 class="text-xl font-black text-white uppercase tracking-widest text-center drop-shadow-2xl group-hover:scale-110 transition-transform duration-500">{{ cat.name }}</h4>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% endif %}{# end homepage-only sections #}
+
+{# ── FULL PRODUCT GRID ──────────────────────────────────────────────────── #}
+<main class="max-w-7xl mx-auto px-4 py-20" id="product-grid">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+        <div>
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+                {% if query %}
+                    Search: "{{ query }}"
+                {% elif current_category %}
+                    {% for cat in categories %}{% if cat.id == current_category %}{{ cat.name }}{% endif %}{% endfor %}
+                {% else %}
+                    All Products
+                {% endif %}
+            </h1>
+            <p class="mt-2 text-gray-500">Discover our latest collections and premium pieces.</p>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <select onchange="location.href='?sort=' + this.value + '{% if current_category %}&category={{ current_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}'" 
+                    class="bg-white border border-gray-200 rounded-lg px-6 py-2.5 text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none shadow-sm cursor-pointer hover:border-brand-500 transition-colors">
+                <option value="price_high_low" {% if current_sort == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+                <option value="price_low_high" {% if current_sort == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Sort by: Newest</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-12">
+        {# Sidebar — Filters — Only shown when searching or category browsing #}
+        {% if is_filtering %}
+        <aside class="w-full lg:w-64 space-y-10">
+            {% if categories %}
+            <div class="bg-gray-50 rounded-2xl p-8 border border-gray-100 shadow-sm">
+                <h3 class="font-bold text-sm uppercase tracking-widest text-gray-400 mb-6">Categories</h3>
+                <ul class="space-y-4 font-medium">
+                    <li>
+                        <a href="/?all=true" class="{% if not current_category %}text-brand-600{% else %}text-gray-600 hover:text-brand-600{% endif %} transition-colors">
+                            All Items
+                        </a>
+                    </li>
+                    {% for cat in categories %}
+                    <li>
+                        <a href="/?category={{ cat.id }}" class="{% if cat.id == current_category %}text-brand-600{% else %}text-gray-600 hover:text-brand-600{% endif %} transition-colors">
+                            {{ cat.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="bg-gray-50 rounded-2xl p-8 border border-gray-100 shadow-sm">
+                <h3 class="font-bold text-sm uppercase tracking-widest text-gray-400 mb-6">Price Range</h3>
+                <form action="/" method="get" class="space-y-6">
+                    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                    
+                    <style>
+                        .price-input::-webkit-outer-spin-button,
+                        .price-input::-webkit-inner-spin-button {
+                            -webkit-appearance: none;
+                            margin: 0;
+                        }
+                        .price-input {
+                            -moz-appearance: textfield;
+                        }
+                    </style>
+                    <div class="flex items-center gap-3">
+                        <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="Min" class="price-input w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-gray-400">
+                        <span class="text-gray-400 font-bold">-</span>
+                        <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="Max" class="price-input w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-gray-400">
+                    </div>
+                    <button type="submit" class="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition-colors shadow-md">
+                        Filter
+                    </button>
+                    {% if min_price or max_price %}
+                        <a href="?{% if current_category %}category={{ current_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="block text-center text-xs text-red-500 hover:underline">
+                            Clear Filters
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+        </aside>
+        {% endif %}
+
+        {# Product Grid #}
+        <div class="flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {% if not is_filtering %}xl:grid-cols-4{% endif %} gap-8">
+                {% for product in products %}
+                <div class="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 {% if not is_filtering %}{% if forloop.counter > 8 %}hidden{% elif forloop.counter > 2 %}hidden xl:block{% elif forloop.counter > 1 %}hidden sm:block{% endif %}{% endif %}">
+                    <div class="relative aspect-square overflow-hidden bg-gray-50">
+                        <a href="/products/{{ product.id }}/">
+                            {% if product.image_b64 %}
+                                <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            {% elif product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-200">
+                                    <i class="fas fa-image text-6xl"></i>
+                                </div>
+                            {% endif %}
+                        </a>
+                        {# Stock badge #}
+                        {% with stock=inventory|dict_get:product.id %}
+                            {% if stock <= 0 and not allow_backorders %}
+                                <div class="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">Sold Out</div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="mb-4">
+                            <p class="text-xs font-bold text-brand-600 uppercase tracking-widest mb-1">{{ product.category.name|default:"Shop" }}</p>
+                            <h3 class="text-lg font-bold text-gray-900 group-hover:text-brand-600 transition-colors">
+                                <a href="/products/{{ product.id }}/">{{ product.name }}</a>
+                            </h3>
+                        </div>
+                        
+                        {% with price=fifo_price_map|dict_get:product.id %}
+                        <div class="flex items-baseline gap-2 mb-6">
+                            <span class="text-xl font-extrabold text-gray-900">Rs.{{ price|default:product.price_estimate }}</span>
+                            {% if product.mrp > product.price_estimate %}
+                                <span class="text-sm text-gray-400 line-through">Rs.{{ product.mrp }}</span>
+                            {% endif %}
+                        </div>
+                        {% endwith %}
+
+                        <div class="mt-auto">
+                            {% with stock=inventory|dict_get:product.id %}
+                                {% if allow_backorders or stock > 0 %}
+                                    <form method="post" action="/cart/add/{{ product.id }}/">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="qty" value="1" />
+                                        <button type="submit" class="w-full bg-gray-50 text-gray-900 font-bold py-3 rounded-xl hover:bg-black hover:text-white transition-all duration-300 border border-gray-100 flex items-center justify-center gap-2 group-hover:shadow-lg">
+                                            <i class="fas fa-plus text-xs"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="w-full bg-gray-100 text-gray-400 font-bold py-3 rounded-xl cursor-not-allowed border border-gray-200">
+                                        Unavailable
+                                    </button>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full py-20 text-center">
+                    <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-search text-3xl text-gray-200"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900">No products found</h3>
+                    <p class="text-gray-500 mt-2">Try adjusting your filters or search terms.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</main>
+
+{# ── Dynamic Benefits Strip (Global) ── #}
+{% if show_benefits %}
+<section id="benefits" class="py-20 bg-gray-50/50 border-t border-gray-100">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="{{ benefit_1_icon }}"></i>
+                </div>
+                <h4 class="font-black text-gray-900 text-lg mb-2">{{ benefit_1_title }}</h4>
+                <p class="text-sm text-gray-500 font-medium leading-relaxed">{{ benefit_1_subtext }}</p>
+            </div>
+            <div class="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="{{ benefit_2_icon }}"></i>
+                </div>
+                <h4 class="font-black text-gray-900 text-lg mb-2">{{ benefit_2_title }}</h4>
+                <p class="text-sm text-gray-500 font-medium leading-relaxed">{{ benefit_2_subtext }}</p>
+            </div>
+            <div class="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="{{ benefit_3_icon }}"></i>
+                </div>
+                <h4 class="font-black text-gray-900 text-lg mb-2">{{ benefit_3_title }}</h4>
+                <p class="text-sm text-gray-500 font-medium leading-relaxed">{{ benefit_3_subtext }}</p>
+            </div>
+            <div class="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="{{ benefit_4_icon }}"></i>
+                </div>
+                <h4 class="font-black text-gray-900 text-lg mb-2">{{ benefit_4_title }}</h4>
+                <p class="text-sm text-gray-500 font-medium leading-relaxed">{{ benefit_4_subtext }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        new Swiper('.hero-swiper', {
+            loop: true,
+            effect: 'fade',
+            fadeEffect: { crossFade: true },
+            autoplay: {
+                delay: 6000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,14 +1,18 @@
 from decimal import Decimal
+import base64
+import urllib.request
+
 from django.conf import settings
 from django.db import transaction, models
 from django.utils import timezone
+from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import Group, User
 
-from catalog.models import Product, Inventory, ProductBatch
+from catalog.models import Product, Inventory, ProductBatch, Category
 from orders.models import OnlineOrder, RetailTransaction
 from customers.models import Customer
 from .auth import APIKeyAuthentication
@@ -26,8 +30,33 @@ from .serializers import (
     DeliveryAgentUpdateSerializer,
     DeliveryAgentDeleteSerializer,
     SyncBatchesPayloadSerializer,
+    SyncCategoriesPayloadSerializer,
 )
 from core.models import ShopConfig
+
+
+def _guess_image_ext(data: bytes) -> str:
+    if data.startswith(b"\xFF\xD8"):
+        return "jpg"
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "png"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "gif"
+    if data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        return "webp"
+    return "jpg"
+
+
+def _decode_image_data(raw: str) -> bytes:
+    data = raw.strip()
+    if data.startswith("data:") and "base64," in data:
+        data = data.split("base64,", 1)[1]
+    return base64.b64decode(data)
+
+
+def _fetch_image_bytes(url: str) -> bytes:
+    with urllib.request.urlopen(url, timeout=10) as resp:
+        return resp.read()
 
 
 class SyncProductsView(APIView):
@@ -48,6 +77,7 @@ class SyncProductsView(APIView):
 
         to_create = []
         to_update = []
+        image_payloads = {}
 
         for data in products_data:
             external_id = data["external_id"]
@@ -77,6 +107,9 @@ class SyncProductsView(APIView):
                     )
                 )
 
+            if data.get("image_clear") or data.get("image_data") or data.get("image_url"):
+                image_payloads[external_id] = data
+
         with transaction.atomic():
             if to_create:
                 Product.objects.bulk_create(to_create)
@@ -88,7 +121,59 @@ class SyncProductsView(APIView):
             if mode == "full":
                 Product.objects.exclude(external_id__in=external_ids).update(is_active=False)
 
-        return Response({"created": len(to_create), "updated": len(to_update), "mode": mode})
+        image_updated = 0
+        image_cleared = 0
+        image_failed = []
+
+        if image_payloads:
+            products = Product.objects.filter(external_id__in=image_payloads.keys())
+            product_map = {p.external_id: p for p in products}
+
+            for external_id, data in image_payloads.items():
+                product = product_map.get(external_id)
+                if not product:
+                    continue
+
+                try:
+                    if data.get("image_clear"):
+                        if product.image:
+                            product.image.delete(save=False)
+                        product.image = None
+                        product.save(update_fields=["image"])
+                        image_cleared += 1
+                        continue
+
+                    img_bytes = None
+                    if data.get("image_data"):
+                        img_bytes = _decode_image_data(data["image_data"])
+                    else:
+                        image_url = (data.get("image_url") or "").strip()
+                        if image_url.startswith("http://") or image_url.startswith("https://"):
+                            img_bytes = _fetch_image_bytes(image_url)
+
+                    if img_bytes:
+                        if product.image:
+                            product.image.delete(save=False)
+                        ext = _guess_image_ext(img_bytes)
+                        filename = f"{product.external_id}.{ext}"
+                        product.image.save(filename, ContentFile(img_bytes), save=False)
+                        # Also store as base64 in DB for backup-friendly storage
+                        product.image_b64 = base64.b64encode(img_bytes).decode("utf-8")
+                        product.save(update_fields=["image", "image_b64"])
+                        image_updated += 1
+                except Exception as e:
+                    image_failed.append({"external_id": external_id, "error": str(e)})
+
+        return Response(
+            {
+                "created": len(to_create),
+                "updated": len(to_update),
+                "mode": mode,
+                "image_updated": image_updated,
+                "image_cleared": image_cleared,
+                "image_failed": image_failed,
+            }
+        )
 
 
 class SyncInventoryView(APIView):
@@ -270,11 +355,14 @@ class SyncCustomersView(APIView):
         serializer.is_valid(raise_exception=True)
         payload = serializer.validated_data
         customers_data = payload["customers"]
+        mode = payload["mode"]
 
         created = 0
         updated = 0
+        seen_phones = []
         for data in customers_data:
             phone = data["phone"]
+            seen_phones.append(phone)
             defaults = {
                 "name": data["name"],
                 "email": data.get("email") or None,
@@ -283,12 +371,40 @@ class SyncCustomersView(APIView):
             obj, was_created = Customer.objects.update_or_create(
                 phone=phone, defaults=defaults
             )
+            if obj.user:
+                user = obj.user
+                desired_username = str(phone)
+                if user.username != desired_username:
+                    user.username = desired_username
+                user.first_name = (data["name"] or "").split()[0] if data["name"] else ""
+                user.email = (data.get("email") or "")
+                user.save()
             if was_created:
                 created += 1
             else:
                 updated += 1
 
-        return Response({"created": created, "updated": updated, "mode": payload["mode"]})
+        deleted = 0
+        deleted_users = 0
+        if mode == "full":
+            to_delete = Customer.objects.exclude(phone__in=seen_phones)
+            user_ids = list(
+                to_delete.exclude(user__isnull=True).values_list("user_id", flat=True)
+            )
+            deleted = to_delete.count()
+            to_delete.delete()
+            if user_ids:
+                deleted_users, _ = User.objects.filter(id__in=user_ids).delete()
+
+        return Response(
+            {
+                "created": created,
+                "updated": updated,
+                "deleted": deleted,
+                "deleted_users": deleted_users,
+                "mode": mode,
+            }
+        )
 
 
 class PendingOrdersView(APIView):
@@ -832,3 +948,65 @@ class DeliveryAgentDeleteView(APIView):
 
         user.delete()
         return Response({"status": "deleted"})
+
+
+class SyncCategoriesView(APIView):
+    """Receives categories from the desktop app and upserts them into the webfront DB."""
+
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = SyncCategoriesPayloadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+        mode = payload["mode"]
+        categories_data = payload["categories"]
+
+        created = 0
+        updated = 0
+
+        with transaction.atomic():
+            external_ids = [c["id"] for c in categories_data]
+            existing = Category.objects.filter(external_id__in=external_ids)
+            existing_map = {c.external_id: c for c in existing}
+
+            to_create = []
+            to_update = []
+
+            for data in categories_data:
+                ext_id = data["id"]
+                name = data["name"]
+                raw_img = (data.get("image_data") or "").strip()
+
+                # Strip data URI prefix if present
+                if raw_img.startswith("data:") and "base64," in raw_img:
+                    raw_img = raw_img.split("base64,", 1)[1]
+
+                if ext_id in existing_map:
+                    cat = existing_map[ext_id]
+                    cat.name = name
+                    if raw_img:
+                        cat.image_b64 = raw_img
+                    to_update.append(cat)
+                    updated += 1
+                else:
+                    to_create.append(
+                        Category(
+                            external_id=ext_id,
+                            name=name,
+                            image_b64=raw_img,
+                        )
+                    )
+                    created += 1
+
+            if to_create:
+                Category.objects.bulk_create(to_create)
+            if to_update:
+                Category.objects.bulk_update(to_update, ["name", "image_b64"])
+
+            if mode == "full":
+                Category.objects.exclude(external_id__in=external_ids).delete()
+
+        return Response({"created": created, "updated": updated, "mode": mode})
+

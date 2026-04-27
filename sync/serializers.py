@@ -1,6 +1,18 @@
 from rest_framework import serializers
 
 
+class CategorySyncSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+    image_data = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+
+class SyncCategoriesPayloadSerializer(serializers.Serializer):
+    mode = serializers.ChoiceField(choices=["full", "delta"])
+    sent_at = serializers.DateTimeField(required=False)
+    categories = CategorySyncSerializer(many=True)
+
+
 class ProductSyncSerializer(serializers.Serializer):
     external_id = serializers.CharField()
     name = serializers.CharField()
@@ -10,6 +22,9 @@ class ProductSyncSerializer(serializers.Serializer):
     gst_rate = serializers.DecimalField(max_digits=6, decimal_places=2)
     is_active = serializers.BooleanField(required=False)
     updated_at = serializers.DateTimeField(required=False)
+    image_url = serializers.CharField(required=False, allow_blank=True)
+    image_data = serializers.CharField(required=False, allow_blank=True)
+    image_clear = serializers.BooleanField(required=False)
 
 
 class SyncProductsPayloadSerializer(serializers.Serializer):
@@ -29,11 +44,13 @@ class SyncInventoryPayloadSerializer(serializers.Serializer):
     sent_at = serializers.DateTimeField(required=False)
     inventory = InventorySyncSerializer(many=True)
 
+
 class CustomerSyncSerializer(serializers.Serializer):
     phone = serializers.IntegerField()
     name = serializers.CharField()
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     address = serializers.CharField()
+
 
 class SyncCustomersPayloadSerializer(serializers.Serializer):
     mode = serializers.ChoiceField(choices=["full", "delta"])
@@ -54,9 +71,11 @@ class OrderDecisionSerializer(serializers.Serializer):
     out_for_delivery = serializers.BooleanField(required=False)
     delivery_date = serializers.DateField(required=False)
 
+
 class OrderStatusUpdateSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
     status = serializers.ChoiceField(choices=["OUT_FOR_DELIVERY"])
+
 
 class RetailTransactionSyncSerializer(serializers.Serializer):
     desktop_id = serializers.CharField()
@@ -65,6 +84,7 @@ class RetailTransactionSyncSerializer(serializers.Serializer):
     grand_total = serializers.DecimalField(max_digits=12, decimal_places=2)
     payment_status = serializers.CharField()
     items_json = serializers.JSONField(default=list)
+
 
 class SyncSalesPayloadSerializer(serializers.Serializer):
     mode = serializers.ChoiceField(choices=["full", "delta"])

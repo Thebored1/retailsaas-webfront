@@ -61,9 +61,11 @@ def delivery_orders_list(request):
     if gate:
         return gate
 
+    from django.db.models import Q
     orders = OnlineOrder.objects.filter(
-        status=OnlineOrder.Status.OUT_FOR_DELIVERY
-    ).order_by("delivery_date", "created_at")
+        Q(status=OnlineOrder.Status.OUT_FOR_DELIVERY) |
+        Q(status=OnlineOrder.Status.DELIVERED)
+    ).order_by("-delivered_at", "delivery_date", "created_at")
 
     return render(
         request,

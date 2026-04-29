@@ -607,6 +607,8 @@ class OrderDecisionView(APIView):
                 order.delivery_slot_text = delivery_text or order.delivery_slot_text
                 if delivery_date:
                     order.delivery_date = delivery_date
+                    # Clear stale expected text once a real date is assigned
+                    order.expected_delivery_text = ""
                 if out_for_delivery:
                     order.out_for_delivery_at = now
                 if "pricing_breakdown" in data:

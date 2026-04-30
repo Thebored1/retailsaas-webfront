@@ -73,8 +73,14 @@
         {% for category in categories %}
         <a href="?category={{ category.id }}" class="group flex flex-col items-center gap-4 p-6 bg-white rounded-sm shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all">
           <div class="w-16 h-16 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-sm text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            {% if category.image %}
-                <img src="{{ category.image.url }}" class="w-10 h-10 object-contain" alt="{{ category.name }}">
+            {% if category.image_b64 %}
+                <img src="{{ category.image_b64|b64_data_uri }}" class="w-10 h-10 object-contain" alt="{{ category.name }}">
+            {% elif category.image %}
+                            {% if category.image_b64 %}
+                                <img src="{{ category.image_b64|b64_data_uri }}" class="w-10 h-10 object-contain" alt="{{ category.name }}">
+                            {% elif category.image %}
+                                <img src="{{ category.image.url }}" class="w-10 h-10 object-contain" alt="{{ category.name }}">
+                            {% endif %}
             {% else %}
                 {{ category.name|slice:":1" }}
             {% endif %}
@@ -107,8 +113,14 @@
           {% for product in featured_products %}
           <div class="w-72 shrink-0 bg-white rounded-sm shadow-sm border border-gray-100 p-4 flex flex-col group">
             <a href="{% url 'product_detail' product.id %}" class="block h-48 bg-gray-50 rounded-sm overflow-hidden mb-4 relative">
-              {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+              {% if product.image_b64 %}
+                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+              {% elif product.image %}
+                            {% if product.image_b64 %}
+                                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                            {% elif product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                            {% endif %}
               {% else %}
                 <div class="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
               {% endif %}
@@ -161,8 +173,14 @@
         {% for product in products %}
         <article class="bg-white p-4 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
           <a href="{% url 'product_detail' product.id %}" class="block bg-gray-50 rounded-sm overflow-hidden aspect-square mb-4 relative">
-            {% if product.image %}
-              <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              {% if product.image_b64 %}
+                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              {% elif product.image %}
+                            {% if product.image_b64 %}
+                                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            {% elif product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            {% endif %}
             {% else %}
               <div class="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
             {% endif %}

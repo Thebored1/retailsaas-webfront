@@ -106,7 +106,11 @@
               <div class="bg-gray-50 rounded-sm overflow-hidden aspect-square relative">
                 <a href="{% url 'product_detail' product.id %}" class="block w-full h-full">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        {% if product.image_b64 %}
+                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        {% elif product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        {% endif %}
                     {% else %}
                         <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold uppercase">No Image</div>
                     {% endif %}

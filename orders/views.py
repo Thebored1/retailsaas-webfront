@@ -244,11 +244,15 @@ def checkout_view(request):
             # Create a guest customer profile if they provided info
             phone = request.POST.get("customer_phone", "")
             if phone:
+                phone = phone.strip()
+                if not phone.isdigit() or len(phone) != 10:
+                    messages.error(request, "Phone number must be exactly 10 digits.")
+                    return redirect("checkout_view")
                 from customers.models import Customer
                 try:
                     # check if guest profile already exists or create new
                     customer_profile, created = Customer.objects.get_or_create(
-                        phone=phone,
+                        phone=int(phone),
                         defaults={
                             'name': request.POST.get("customer_name", "").title(),
                             'email': request.POST.get("customer_email", ""),
@@ -260,7 +264,7 @@ def checkout_view(request):
 
         customer_json = {
             "name": request.POST.get("customer_name", ""),
-            "phone": request.POST.get("customer_phone", ""),
+            "phone": request.POST.get("customer_phone", "").strip(),
             "email": request.POST.get("customer_email", ""),
             "address": request.POST.get("customer_address", ""),
         }

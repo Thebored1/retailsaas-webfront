@@ -24,9 +24,14 @@
 
         <form method="post" class="space-y-6 bg-white p-10 rounded-sm shadow-xl border border-gray-100">
           {% csrf_token %}
+          {% if form.phone.errors or form.password.errors %}
+            <div class="mb-6 p-4 rounded-sm text-sm font-bold bg-red-50 text-red-600 border border-red-100">
+                {{ form.phone.errors.0|default:form.password.errors.0 }}
+            </div>
+          {% endif %}
           <div>
-            <label for="id_username" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Username</label>
-            <input type="text" name="username" id="id_username" placeholder="Agent ID" 
+            <label for="id_phone" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Phone Number</label>
+            <input type="tel" name="phone" id="id_phone" placeholder="Enter your registered phone" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" title="Must be exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" 
                    class="w-full border-2 border-gray-100 rounded-sm px-4 py-3 focus:ring-2 focus:ring-indigo-600 focus:outline-none bg-gray-50 transition-all" required />
           </div>
           <div>

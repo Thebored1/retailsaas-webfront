@@ -60,7 +60,7 @@
                 <a href="/products/{{ product.id }}/" class="block">
                     <div class="aspect-[3/4] rounded-[3rem] overflow-hidden bg-gray-50 mb-8 relative shadow-sm group-hover:shadow-2xl transition-all duration-500">
                         {% if product.image_b64 %}
-                            <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
+                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
                         {% elif product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
                         {% else %}
@@ -137,7 +137,7 @@
         {% for cat in categories %}
         <a href="/?category={{ cat.id }}" class="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 block aspect-square">
             {% if cat.image_b64 %}
-                <img src="data:image/webp;base64,{{ cat.image_b64 }}" alt="{{ cat.name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                <img src="{{ cat.image_b64|b64_data_uri }}" alt="{{ cat.name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
             {% elif cat.image %}
                 <img src="{{ cat.image.url }}" alt="{{ cat.name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
             {% else %}
@@ -250,7 +250,7 @@
                     <div class="relative aspect-square overflow-hidden bg-gray-50">
                         <a href="/products/{{ product.id }}/">
                             {% if product.image_b64 %}
-                                <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                             {% elif product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                             {% else %}

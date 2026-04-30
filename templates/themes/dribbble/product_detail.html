@@ -5,8 +5,14 @@
 <div class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 4rem; align-items: start;">
         <div class="product-image" style="border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-md);">
-            {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: auto; display: block;">
+            {% if product.image_b64 %}
+                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" style="width: 100%; height: auto; display: block;">
+            {% elif product.image %}
+                        {% if product.image_b64 %}
+                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" style="width: 100%; height: auto; display: block;">
+                        {% elif product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: auto; display: block;">
+                        {% endif %}
             {% else %}
                 <div style="width: 100%; padding-top: 100%; background: var(--light-gray); display: flex; align-items: center; justify-content: center; color: #9e9ea7;">No Image</div>
             {% endif %}

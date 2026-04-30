@@ -30,8 +30,14 @@
         <div class="lg:col-span-7">
           <div class="sticky top-28 space-y-4">
             <div class="bg-white rounded-sm shadow-sm overflow-hidden border border-gray-100 aspect-square">
-              {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+              {% if product.image_b64 %}
+                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+              {% elif product.image %}
+                            {% if product.image_b64 %}
+                                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+                            {% elif product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+                            {% endif %}
               {% else %}
                 <div class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">No Image Available</div>
               {% endif %}
@@ -40,7 +46,7 @@
             <!-- Thumbnail placeholders or extra images could go here -->
             <div class="grid grid-cols-4 gap-4">
                 <div class="aspect-square bg-gray-100 rounded-sm overflow-hidden border-2 border-indigo-600">
-                    {% if product.image %}<img src="{{ product.image.url }}" class="w-full h-full object-cover">{% endif %}
+                    {% if product.image_b64 %}<img src="{{ product.image_b64|b64_data_uri }}" class="w-full h-full object-cover">{% elif product.image %}<img src="{{ product.image.url }}" class="w-full h-full object-cover">{% endif %}
                 </div>
             </div>
           </div>
@@ -193,8 +199,14 @@
         {% for rel in related_products %}
         <article class="bg-white p-4 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
           <a href="{% url 'product_detail' rel.id %}" class="block bg-gray-50 rounded-sm overflow-hidden aspect-square mb-4 relative">
-            {% if rel.image %}
-              <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            {% if rel.image_b64 %}
+              <img src="{{ rel.image_b64|b64_data_uri }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            {% elif rel.image %}
+                        {% if rel.image_b64 %}
+                            <img src="{{ rel.image_b64|b64_data_uri }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        {% elif rel.image %}
+                            <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        {% endif %}
             {% else %}
               <div class="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
             {% endif %}

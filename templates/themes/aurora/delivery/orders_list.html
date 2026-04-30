@@ -11,9 +11,9 @@
     <a href="/delivery/orders/{{ order.id }}/" class="block bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
         {# Status Badge #}
         <div class="absolute top-0 right-0">
-            {% if order.status == 'delivered' %}
+            {% if order.status == 'DELIVERED' %}
                 <span class="bg-green-500 text-white text-[10px] uppercase tracking-widest font-black px-6 py-2 rounded-bl-2xl shadow-lg">Delivered</span>
-            {% elif order.status == 'shipped' %}
+            {% elif order.status == 'OUT_FOR_DELIVERY' %}
                 <span class="bg-brand-500 text-white text-[10px] uppercase tracking-widest font-black px-6 py-2 rounded-bl-2xl shadow-lg">Out for Delivery</span>
             {% else %}
                 <span class="bg-gray-900 text-white text-[10px] uppercase tracking-widest font-black px-6 py-2 rounded-bl-2xl shadow-lg">{{ order.status }}</span>

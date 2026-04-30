@@ -23,7 +23,7 @@
           {% csrf_token %}
           <div>
             <label for="id_phone" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Phone Number</label>
-            <input type="tel" name="phone" id="id_phone" placeholder="Enter your registered phone" 
+            <input type="tel" name="phone" id="id_phone" placeholder="Enter your registered phone" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" title="Must be exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" 
                    class="w-full border-2 border-gray-100 rounded-sm px-4 py-3 focus:ring-2 focus:ring-indigo-600 focus:outline-none bg-gray-50 transition-all" required />
           </div>
           <div>

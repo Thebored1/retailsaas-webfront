@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.utils import timezone
-from catalog.models import Product, Inventory
+from catalog.models import Product, Inventory, ProductBatch
 from orders.models import OnlineOrder
 
 
@@ -21,6 +21,15 @@ class CheckoutFlowTests(TestCase):
             qty_available=10,
             updated_at=timezone.now(),
         )
+        ProductBatch.objects.create(
+            product=self.product,
+            external_id="b1",
+            batch_number="B1",
+            selling_price=10,
+            qty_available=10,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
 
     def test_checkout_creates_order(self):
         self.client.post(f"/cart/add/{self.product.id}/", {"qty": 2})
@@ -28,7 +37,7 @@ class CheckoutFlowTests(TestCase):
             "/checkout/",
             {
                 "customer_name": "John",
-                "customer_phone": "123",
+                "customer_phone": "1234567890",
             },
         )
         self.assertEqual(response.status_code, 302)

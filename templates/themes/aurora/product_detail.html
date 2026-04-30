@@ -9,9 +9,13 @@
         <div>
             <div class="bg-gray-50 rounded-2xl overflow-hidden aspect-square flex items-center justify-center">
                 {% if product.image_b64 %}
-                    <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                    <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover">
                 {% elif product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                            {% if product.image_b64 %}
+                                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                            {% elif product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                            {% endif %}
                 {% else %}
                     <i class="fas fa-image text-9xl text-gray-200"></i>
                 {% endif %}
@@ -206,9 +210,13 @@
                 <a href="/products/{{ rel.id }}/" class="block">
                     <div class="aspect-square rounded-3xl overflow-hidden bg-gray-50 mb-6 relative">
                         {% if rel.image_b64 %}
-                            <img src="data:image/webp;base64,{{ rel.image_b64 }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <img src="{{ rel.image_b64|b64_data_uri }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         {% elif rel.image %}
-                            <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            {% if rel.image_b64 %}
+                                <img src="{{ rel.image_b64|b64_data_uri }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            {% elif rel.image %}
+                                <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            {% endif %}
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center text-gray-200">
                                 <i class="fas fa-image text-5xl"></i>

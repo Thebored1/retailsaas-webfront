@@ -1,4 +1,5 @@
 {% extends "themes/default/base.html" %}
+{% load catalog_extras %}
 
 {% block content %}
 <!-- Breadcrumbs -->
@@ -20,8 +21,14 @@
         <div class="flex flex-col-reverse lg:flex-row gap-4 lg:gap-6">
             <!-- Main Image -->
             <div class="w-full bg-gray-100 rounded-xl overflow-hidden aspect-[4/3] relative shadow-sm">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                {% if product.image_b64 %}
+                    <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                {% elif product.image %}
+                        {% if product.image_b64 %}
+                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                        {% elif product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                        {% endif %}
                 {% else %}
                     <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
                         <i class="fas fa-image text-6xl mb-4"></i>

@@ -15,7 +15,7 @@
 
     <div class="form-group" style="margin-bottom: 15px;">
       <label for="{{ form.phone.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: bold;">{{ form.phone.label }}</label>
-      <input type="number" name="{{ form.phone.name }}" id="{{ form.phone.id_for_label }}" placeholder="10-digit number" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <input type="tel" name="{{ form.phone.name }}" id="{{ form.phone.id_for_label }}" placeholder="10-digit number" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" title="Must be exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
       <small style="color: #666; display: block; margin-top: 4px;">{{ form.phone.help_text }}</small>
       {{ form.phone.errors }}
     </div>

@@ -1,4 +1,5 @@
 {% extends "themes/default/base.html" %}
+{% load catalog_extras %}
 {% load static %}
 
 {% block content %}
@@ -56,7 +57,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
                             <div class="mt-1">
-                                <input type="tel" name="customer_phone" placeholder="10-digit Phone number" maxlength="10" pattern="\d{10}" title="Must be exactly 10 digits" 
+                                <input type="tel" name="customer_phone" placeholder="10-digit Phone number" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" title="Must be exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" 
                                        value="{% if request.user.is_authenticated %}{{ request.user.customer.phone }}{% endif %}" 
                                        {% if request.user.is_authenticated %}readonly{% endif %} required 
                                        class="block w-full rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500 sm:text-sm p-3 border {% if request.user.is_authenticated %}bg-gray-50 border-gray-200 text-gray-500{% else %}border-gray-300{% endif %}">
@@ -162,7 +163,11 @@
                     <li class="flex py-4">
                         <div class="flex-shrink-0 relative">
                             {% if item.product.image %}
-                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
+                        {% if item.product.image_b64 %}
+                            <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
+                        {% elif item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
+                        {% endif %}
                             {% else %}
                                 <div class="w-20 aspect-[4/3] rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-400">
                                     <i class="fas fa-image"></i>

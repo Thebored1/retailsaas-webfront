@@ -1,4 +1,5 @@
 {% extends "themes/aurora/base.html" %}
+{% load catalog_extras %}
 {% load static %}
 
 {% block content %}
@@ -40,7 +41,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
-                                <input type="tel" name="customer_phone" placeholder="10-digit number" maxlength="10" pattern="\d{10}"
+                                <input type="tel" name="customer_phone" placeholder="10-digit number" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" title="Must be exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
                                        value="{% if request.user.is_authenticated %}{{ request.user.customer.phone }}{% endif %}" 
                                        {% if request.user.is_authenticated %}readonly{% endif %} required 
                                        class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 outline-none focus:ring-2 focus:ring-brand-500 transition-all {% if request.user.is_authenticated %}bg-gray-100 text-gray-500 cursor-not-allowed{% endif %}">
@@ -93,7 +94,11 @@
                         <div class="relative">
                             <div class="w-16 h-16 rounded-lg overflow-hidden bg-white">
                                 {% if item.product.image %}
-                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                            {% if item.product.image_b64 %}
+                                <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                            {% elif item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                            {% endif %}
                                 {% else %}
                                     <div class="w-full h-full flex items-center justify-center text-gray-200">
                                         <i class="fas fa-image"></i>

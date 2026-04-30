@@ -10,6 +10,11 @@
 
         <form method="post" class="space-y-6">
             {% csrf_token %}
+            {% if form.phone.errors or form.password.errors %}
+                <div class="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-600 font-bold">
+                    {{ form.phone.errors.0|default:form.password.errors.0 }}
+                </div>
+            {% endif %}
             {% if form.non_field_errors %}
                 <div class="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-600 font-bold">
                     {{ form.non_field_errors.0 }}
@@ -17,8 +22,8 @@
             {% endif %}
 
             <div class="space-y-2">
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Username</label>
-                <input type="text" name="username" required class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                <input type="tel" name="phone" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" title="Must be exactly 10 digits" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold">
             </div>
 
             <div class="space-y-2">

@@ -22,7 +22,13 @@
                 <div class="p-6 flex-1">
                     <div class="flex justify-between items-start mb-4">
                         <span class="font-bold text-gray-900 text-lg">#{{ order.id|stringformat:"06d" }}</span>
-                        <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded-sm uppercase">Out for Delivery</span>
+                        {% if order.status == 'DELIVERED' %}
+                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-sm uppercase">Delivered</span>
+                        {% elif order.status == 'OUT_FOR_DELIVERY' %}
+                            <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded-sm uppercase">Out for Delivery</span>
+                        {% else %}
+                            <span class="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-1 rounded-sm uppercase">{{ order.status }}</span>
+                        {% endif %}
                     </div>
                     
                     <div class="space-y-4">

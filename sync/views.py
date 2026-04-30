@@ -139,7 +139,8 @@ class SyncProductsView(APIView):
                         if product.image:
                             product.image.delete(save=False)
                         product.image = None
-                        product.save(update_fields=["image"])
+                        product.image_b64 = ""
+                        product.save(update_fields=["image", "image_b64"])
                         image_cleared += 1
                         continue
 

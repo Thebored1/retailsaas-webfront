@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
+from django import forms
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -10,6 +10,26 @@ from orders.models import OnlineOrder, DeliveryProof
 
 
 DELIVERY_GROUP_NAME = "delivery_agents"
+
+PHONE_INPUT_ATTRS = {
+    "type": "tel",
+    "inputmode": "numeric",
+    "maxlength": "10",
+    "pattern": "[0-9]{10}",
+    "autocomplete": "tel",
+    "title": "Enter a 10-digit phone number",
+    "oninput": "this.value=this.value.replace(/\\D/g,'').slice(0,10)",
+}
+
+
+class DeliveryLoginForm(forms.Form):
+    phone = forms.IntegerField(
+        min_value=1000000000,
+        max_value=9999999999,
+        label="Phone Number",
+        widget=forms.TextInput(attrs={**PHONE_INPUT_ATTRS, "placeholder": "Enter your registered phone"}),
+    )
+    password = forms.CharField(widget=forms.PasswordInput)
 
 
 def _theme_template(template_name: str) -> str:
@@ -38,9 +58,16 @@ def delivery_login(request):
     if request.user.is_authenticated and _is_delivery_agent(request.user):
         return redirect("delivery_orders")
 
-    form = AuthenticationForm(request, data=request.POST or None)
+    form = DeliveryLoginForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = form.get_user()
+        phone = str(form.cleaned_data["phone"])
+        password = form.cleaned_data["password"]
+        from django.contrib.auth import authenticate
+
+        user = authenticate(request, username=phone, password=password)
+        if user is None:
+            messages.error(request, "Invalid phone number or password.")
+            return render(request, _theme_template("delivery/login.html"), {"form": form})
         if not _is_delivery_agent(user):
             messages.error(request, "This account is not a delivery agent.")
             return redirect("delivery_login")

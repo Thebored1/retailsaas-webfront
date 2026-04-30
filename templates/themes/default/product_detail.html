@@ -22,10 +22,10 @@
             <!-- Main Image -->
             <div class="w-full bg-gray-100 rounded-xl overflow-hidden aspect-[4/3] relative shadow-sm">
                 {% if product.image_b64 %}
-                    <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                    <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
                 {% elif product.image %}
                         {% if product.image_b64 %}
-                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                            <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
                         {% elif product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
                         {% endif %}

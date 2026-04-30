@@ -14,10 +14,10 @@
             <div class="flex flex-col sm:flex-row gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm relative group">
                 <div class="w-full sm:w-32 aspect-square rounded-xl overflow-hidden bg-white shadow-sm">
                     {% if item.product.image_b64 %}
-                        <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                        <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
                     {% elif item.product.image %}
                             {% if item.product.image_b64 %}
-                                <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                                <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
                             {% elif item.product.image %}
                                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
                             {% endif %}

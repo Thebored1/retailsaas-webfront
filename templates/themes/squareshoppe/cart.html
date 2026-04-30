@@ -22,10 +22,10 @@
             <div class="p-6 flex flex-col sm:flex-row gap-6 group">
               <div class="w-32 h-32 bg-gray-50 rounded-sm shrink-0 overflow-hidden">
                 {% if item.product.image_b64 %}
-                    <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
+                    <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
                 {% elif item.product.image %}
                             {% if item.product.image_b64 %}
-                                <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
+                                <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
                             {% elif item.product.image %}
                                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
                             {% endif %}

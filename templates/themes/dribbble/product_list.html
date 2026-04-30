@@ -28,10 +28,10 @@
         {% if featured %}
         <div class="featured-card">
             {% if featured.image_b64 %}
-                <img src="{{ featured.image_b64|b64_data_uri }}" alt="{{ featured.name }}">
+                <img src="data:image/webp;base64,{{ featured.image_b64 }}" alt="{{ featured.name }}">
             {% elif featured.image %}
                         {% if featured.image_b64 %}
-                            <img src="{{ featured.image_b64|b64_data_uri }}" alt="{{ featured.name }}">
+                            <img src="data:image/webp;base64,{{ featured.image_b64 }}" alt="{{ featured.name }}">
                         {% elif featured.image %}
                             <img src="{{ featured.image.url }}" alt="{{ featured.name }}">
                         {% endif %}
@@ -93,10 +93,10 @@
         <div class="shot-image">
             <a href="/products/{{ product.id }}/">
                 {% if product.image_b64 %}
-                    <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}">
+                    <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}">
                 {% elif product.image %}
                         {% if product.image_b64 %}
-                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}">
+                            <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}">
                         {% elif product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}">
                         {% endif %}

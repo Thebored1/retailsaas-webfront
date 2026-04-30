@@ -94,7 +94,7 @@
                 <div class="w-20 h-20 bg-gray-50 rounded-sm overflow-hidden shrink-0 border border-gray-100">
                   {% if item.product.image %}
                             {% if item.product.image_b64 %}
-                                <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
+                                <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
                             {% elif item.product.image %}
                                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover" />
                             {% endif %}

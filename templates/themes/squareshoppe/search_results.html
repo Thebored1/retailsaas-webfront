@@ -107,7 +107,7 @@
                 <a href="{% url 'product_detail' product.id %}" class="block w-full h-full">
                     {% if product.image %}
                         {% if product.image_b64 %}
-                            <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                         {% elif product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                         {% endif %}

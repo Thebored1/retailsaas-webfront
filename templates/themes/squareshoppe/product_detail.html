@@ -31,10 +31,10 @@
           <div class="sticky top-28 space-y-4">
             <div class="bg-white rounded-sm shadow-sm overflow-hidden border border-gray-100 aspect-square">
               {% if product.image_b64 %}
-                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+                <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
               {% elif product.image %}
                             {% if product.image_b64 %}
-                                <img src="{{ product.image_b64|b64_data_uri }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+                                <img src="data:image/webp;base64,{{ product.image_b64 }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
                             {% elif product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
                             {% endif %}
@@ -46,7 +46,7 @@
             <!-- Thumbnail placeholders or extra images could go here -->
             <div class="grid grid-cols-4 gap-4">
                 <div class="aspect-square bg-gray-100 rounded-sm overflow-hidden border-2 border-indigo-600">
-                    {% if product.image_b64 %}<img src="{{ product.image_b64|b64_data_uri }}" class="w-full h-full object-cover">{% elif product.image %}<img src="{{ product.image.url }}" class="w-full h-full object-cover">{% endif %}
+                    {% if product.image_b64 %}<img src="data:image/webp;base64,{{ product.image_b64 }}" class="w-full h-full object-cover">{% elif product.image %}<img src="{{ product.image.url }}" class="w-full h-full object-cover">{% endif %}
                 </div>
             </div>
           </div>
@@ -200,10 +200,10 @@
         <article class="bg-white p-4 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
           <a href="{% url 'product_detail' rel.id %}" class="block bg-gray-50 rounded-sm overflow-hidden aspect-square mb-4 relative">
             {% if rel.image_b64 %}
-              <img src="{{ rel.image_b64|b64_data_uri }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img src="data:image/webp;base64,{{ rel.image_b64 }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             {% elif rel.image %}
                         {% if rel.image_b64 %}
-                            <img src="{{ rel.image_b64|b64_data_uri }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <img src="data:image/webp;base64,{{ rel.image_b64 }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         {% elif rel.image %}
                             <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         {% endif %}

@@ -22,10 +22,10 @@
                 <li class="flex py-6 sm:py-8 sm:grid sm:grid-cols-6 gap-4 items-center">
                     <div class="flex-shrink-0 sm:col-span-3 flex items-center">
                         {% if item.product.image_b64 %}
-                            <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-32 aspect-[4/3] rounded-md object-center object-cover border border-gray-100">
+                            <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-32 aspect-[4/3] rounded-md object-center object-cover border border-gray-100">
                         {% elif item.product.image %}
                         {% if item.product.image_b64 %}
-                            <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-32 aspect-[4/3] rounded-md object-center object-cover border border-gray-100">
+                            <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-32 aspect-[4/3] rounded-md object-center object-cover border border-gray-100">
                         {% elif item.product.image %}
                             <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-32 aspect-[4/3] rounded-md object-center object-cover border border-gray-100">
                         {% endif %}

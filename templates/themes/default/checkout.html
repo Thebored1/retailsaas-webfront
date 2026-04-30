@@ -164,7 +164,7 @@
                         <div class="flex-shrink-0 relative">
                             {% if item.product.image %}
                         {% if item.product.image_b64 %}
-                            <img src="{{ item.product.image_b64|b64_data_uri }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
+                            <img src="data:image/webp;base64,{{ item.product.image_b64 }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
                         {% elif item.product.image %}
                             <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-20 aspect-[4/3] rounded-md object-center object-cover border border-gray-200 bg-white">
                         {% endif %}
